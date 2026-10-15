@@ -2282,4 +2282,489 @@ body.reduced-motion *::after {
   transition-duration: 0.001s !important;
 }
 
+/* ==========================================================================
+   POKER TRADICIONAL & SUBMUNDO ROGUELIKE STYLING
+   ========================================================================== */
+
+/* Mode 5: Poker Tradicional Lobby Card */
+.mode-poker-card {
+  border-color: rgba(36, 82, 71, 0.6) !important;
+  background: linear-gradient(135deg, rgba(20, 45, 38, 0.85) 0%, rgba(13, 11, 14, 0.95) 100%) !important;
+}
+.mode-poker-card:hover {
+  border-color: #3bb292 !important;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8), 0 0 25px rgba(36, 82, 71, 0.5) !important;
+}
+.mode-poker-card.selected {
+  border-color: #4ee0b8 !important;
+  background: linear-gradient(135deg, rgba(24, 60, 50, 0.95) 0%, rgba(20, 16, 26, 0.98) 100%) !important;
+  box-shadow: 0 0 30px rgba(78, 224, 184, 0.35) !important;
+}
+.tag-poker {
+  color: #5ce6c0 !important;
+  border-color: rgba(92, 230, 192, 0.4) !important;
+}
+.arrow-poker {
+  border-color: rgba(92, 230, 192, 0.4) !important;
+  color: #5ce6c0 !important;
+}
+.mode-poker-card:hover .arrow-poker {
+  background: #5ce6c0 !important;
+  color: #0b1f19 !important;
+}
+
+/* Mode 6: Poker Submundo Lobby Card */
+.mode-submundo-card {
+  border-color: rgba(116, 38, 58, 0.6) !important;
+  background: linear-gradient(135deg, rgba(45, 20, 35, 0.85) 0%, rgba(25, 15, 35, 0.95) 100%) !important;
+}
+.mode-submundo-card:hover {
+  border-color: #d15173 !important;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8), 0 0 25px rgba(116, 38, 58, 0.5) !important;
+}
+.mode-submundo-card.selected {
+  border-color: #f77096 !important;
+  background: linear-gradient(135deg, rgba(65, 25, 45, 0.95) 0%, rgba(35, 18, 48, 0.98) 100%) !important;
+  box-shadow: 0 0 30px rgba(247, 112, 150, 0.35) !important;
+}
+.tag-submundo {
+  color: #f77096 !important;
+  border-color: rgba(247, 112, 150, 0.4) !important;
+}
+.arrow-submundo {
+  border-color: rgba(247, 112, 150, 0.4) !important;
+  color: #f77096 !important;
+}
+.mode-submundo-card:hover .arrow-submundo {
+  background: #f77096 !important;
+  color: #1a0812 !important;
+}
+
+/* Submundo Top HUD */
+.submundo-hud {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(18, 14, 24, 0.95);
+  border: 1.5px solid rgba(216, 173, 102, 0.4);
+  border-radius: 12px;
+  padding: 8px 18px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+}
+.submundo-ante-box, .submundo-blind-box {
+  display: flex;
+  flex-direction: column;
+}
+.sub-label {
+  font-size: 0.68rem;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+.sub-val {
+  font-family: var(--font-title);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--gold-bright);
+}
+.sub-blind-name {
+  font-family: var(--font-title);
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+.submundo-score-box {
+  display: flex;
+  flex-direction: column;
+  min-width: 170px;
+  gap: 4px;
+}
+.score-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.sub-meta-nums {
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--gold-bright);
+}
+.submundo-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 4px;
+  border: 1px solid rgba(216, 173, 102, 0.3);
+  overflow: hidden;
+}
+.submundo-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #b97732 0%, #f0d69a 100%);
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(240, 214, 154, 0.6);
+  transition: width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.submundo-stat-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.45);
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  min-width: 60px;
+}
+.sub-num {
+  font-family: var(--font-title);
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #fff;
+}
+.gold-pill {
+  border-color: rgba(216, 173, 102, 0.5);
+  background: rgba(216, 173, 102, 0.1);
+}
+.gold-pill .sub-num {
+  color: var(--gold-bright);
+}
+
+/* Submundo Jokers Top Tray */
+.submundo-jokers-tray {
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  background: rgba(18, 14, 24, 0.85);
+  border: 1px solid rgba(216, 173, 102, 0.35);
+  border-radius: 12px;
+  padding: 6px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  backdrop-filter: blur(8px);
+}
+.jokers-tray-title {
+  font-size: 0.68rem;
+  letter-spacing: 1.5px;
+  color: var(--gold);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+.jokers-slots-container {
+  display: flex;
+  gap: 10px;
+}
+.joker-slot {
+  width: 54px;
+  height: 76px;
+  border-radius: 6px;
+  border: 1.5px dashed rgba(216, 173, 102, 0.3);
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  position: relative;
+  cursor: pointer;
+}
+.joker-slot.filled {
+  border: 1.5px solid var(--gold);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6), 0 0 10px rgba(216, 173, 102, 0.2);
+}
+.joker-slot.filled:hover {
+  transform: translateY(-4px) scale(1.08);
+  border-color: var(--gold-bright);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.8), 0 0 16px rgba(240, 214, 154, 0.4);
+}
+.joker-slot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+/* Texas Hold'em Community Cards Zone */
+.poker-community-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  background: rgba(10, 20, 16, 0.7);
+  border: 1.5px solid rgba(78, 224, 184, 0.35);
+  border-radius: 16px;
+  padding: 16px 24px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.7), inset 0 0 20px rgba(36, 82, 71, 0.25);
+}
+.poker-stage-tag {
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  letter-spacing: 2px;
+  color: #5ce6c0;
+  text-transform: uppercase;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 4px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(92, 230, 192, 0.3);
+}
+.poker-board-cards {
+  display: flex;
+  gap: 12px;
+  min-height: 120px;
+  align-items: center;
+}
+.poker-board-cards .poker-board-card {
+  width: 82px;
+  height: 118px;
+  border-radius: 8px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.65);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.poker-board-cards .poker-board-card:hover {
+  transform: translateY(-4px) scale(1.05);
+}
+.poker-pot-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1.5px solid var(--gold);
+  border-radius: 20px;
+  padding: 6px 18px;
+}
+.pot-icon { font-size: 1.1rem; }
+.pot-title { font-size: 0.8rem; letter-spacing: 1px; color: var(--text-secondary); }
+.pot-amount { font-family: var(--font-title); font-size: 1.3rem; font-weight: 800; color: #F0D69A; }
+
+/* Seat chips badge */
+.seat-chips-badge {
+  font-family: var(--font-title);
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid var(--gold);
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 0.85rem;
+  color: var(--gold-bright);
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+/* Texas Hold'em Actions Bar */
+.poker-actions-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 10;
+}
+.btn-poker-action {
+  font-family: var(--font-title);
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #fff;
+}
+.btn-poker-fold {
+  background: rgba(193, 74, 80, 0.25);
+  border-color: rgba(193, 74, 80, 0.6);
+  color: #fca5a5;
+}
+.btn-poker-fold:hover {
+  background: #c14a50;
+  color: #fff;
+  transform: translateY(-2px);
+}
+.btn-poker-check-call {
+  background: rgba(36, 82, 71, 0.35);
+  border-color: #5ce6c0;
+  color: #5ce6c0;
+}
+.btn-poker-check-call:hover {
+  background: #245247;
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 0 15px rgba(92, 230, 192, 0.35);
+}
+.poker-raise-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.btn-poker-raise {
+  background: linear-gradient(135deg, rgba(185, 119, 50, 0.4) 0%, rgba(216, 173, 102, 0.3) 100%);
+  border-color: var(--gold);
+  color: var(--gold-bright);
+}
+.btn-poker-raise:hover {
+  background: var(--gold);
+  color: #1a1215;
+  transform: translateY(-2px);
+  box-shadow: 0 0 16px rgba(216, 173, 102, 0.4);
+}
+.raise-quick-btns {
+  display: flex;
+  gap: 4px;
+}
+.btn-chip-quick {
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(216, 173, 102, 0.3);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+  padding: 2px 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-chip-quick:hover {
+  border-color: var(--gold);
+  color: var(--gold-bright);
+}
+.btn-poker-allin {
+  background: linear-gradient(135deg, #74263a 0%, #b8424c 100%);
+  border-color: #f87171;
+  color: #fff;
+  font-weight: 800;
+  animation: pulse-allin 1.8s infinite;
+}
+@keyframes pulse-allin {
+  0%, 100% { box-shadow: 0 0 10px rgba(184, 66, 76, 0.4); }
+  50% { box-shadow: 0 0 20px rgba(248, 113, 113, 0.8); }
+}
+
+/* Submundo Roguelike Actions Bar */
+.submundo-actions-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  z-index: 10;
+}
+.submundo-hand-preview {
+  display: flex;
+  flex-direction: column;
+  background: rgba(18, 14, 24, 0.9);
+  border: 1.5px solid var(--gold);
+  border-radius: 10px;
+  padding: 6px 16px;
+  min-width: 190px;
+}
+.hand-detect-name {
+  font-family: var(--font-title);
+  font-size: 1.15rem;
+  color: var(--gold-bright);
+}
+.hand-detect-score {
+  font-size: 0.85rem;
+  color: #5ce6c0;
+  font-weight: 700;
+}
+.btn-submundo-play {
+  font-family: var(--font-title);
+  font-size: 1.25rem;
+  letter-spacing: 1.5px;
+  padding: 12px 28px;
+  border-radius: 10px;
+  border: 1.5px solid var(--gold-bright);
+  background: linear-gradient(135deg, #245247 0%, #173830 100%);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(36, 82, 71, 0.4);
+  transition: all 0.25s ease;
+}
+.btn-submundo-play:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7), 0 0 25px rgba(92, 230, 192, 0.6);
+}
+.btn-submundo-play:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: #555;
+}
+.btn-submundo-discard {
+  font-family: var(--font-title);
+  font-size: 1.15rem;
+  letter-spacing: 1px;
+  padding: 12px 22px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(193, 74, 80, 0.6);
+  background: rgba(116, 38, 58, 0.4);
+  color: #fca5a5;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-submundo-discard:hover:not(:disabled) {
+  background: #74263a;
+  color: #fff;
+  transform: translateY(-2px);
+}
+.btn-submundo-discard:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Submundo Shop Item Card */
+.shop-item-card {
+  background: rgba(18, 14, 24, 0.85);
+  border: 1.5px solid rgba(216, 173, 102, 0.35);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: all 0.25s ease;
+}
+.shop-item-card:hover {
+  border-color: var(--gold);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7), 0 0 18px rgba(216, 173, 102, 0.3);
+}
+.shop-item-card img {
+  width: 90px;
+  height: 128px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
+}
+.shop-item-title {
+  font-family: var(--font-title);
+  font-size: 1.15rem;
+  color: var(--gold-bright);
+  margin-bottom: 4px;
+}
+.shop-item-desc {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-bottom: 14px;
+  min-height: 40px;
+}
+.shop-item-buy-btn {
+  font-family: var(--font-title);
+  font-size: 1.05rem;
+  letter-spacing: 1px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1.5px solid var(--gold);
+  background: rgba(216, 173, 102, 0.2);
+  color: var(--gold-bright);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+.shop-item-buy-btn:hover:not(:disabled) {
+  background: var(--gold);
+  color: #1a1215;
+}
+.shop-item-buy-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  border-color: #555;
+}
+
+
 

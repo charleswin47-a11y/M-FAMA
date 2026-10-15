@@ -81,10 +81,14 @@ function generateRoomCode() {
   return `MAFAMA-${num}`;
 }
 
-function buildFreshDeck() {
+const DECK_52_RANKS = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "j", "q", "k", "a"];
+
+function buildFreshDeck(mode = "truco_paulista") {
+  const isPoker = mode && mode.includes("poker");
+  const ranks = isPoker ? DECK_52_RANKS : MANILHA_CYCLE;
   const deck = [];
   for (const suit of SUITS) {
-    for (const rank of MANILHA_CYCLE) {
+    for (const rank of ranks) {
       deck.push({
         id: `${rank}_${suit.id}`,
         rank,
@@ -178,7 +182,7 @@ function startRoomHand(room) {
   room.lastRaiserTeam = null;
   room.announcement = "Nova mão distribuída!";
 
-  const deck = buildFreshDeck();
+  const deck = buildFreshDeck(room.mode);
 
   if (room.mode.startsWith("sueca")) {
     // SUECA: 40 cards dealt entirely (10 cards for each of the 4 players)

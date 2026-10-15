@@ -1,5 +1,3 @@
-// MÁ FAMA - Master Application Controller
-
 import { CHARACTERS, COURT_LORE } from "./data/characters.js";
 import { GameState } from "./core/gameState.js";
 import { AudioManager } from "./audio/audioManager.js";
@@ -10,6 +8,9 @@ import { SettingsManager } from "./settings/settingsManager.js";
 import { SettingsModal } from "./ui/settingsModal.js";
 import { HintController } from "./assistant/hintController.js";
 import { HintPanel } from "./ui/hintPanel.js";
+import { BettingEngine, POKER_STAGES } from "./game/poker/bettingEngine.js";
+import { RunManager } from "./game/poker/runManager.js";
+import { HandEvaluator } from "./game/cards/handEvaluator.js";
 
 export class MaFamaApp {
   constructor() {
@@ -61,11 +62,13 @@ export class MaFamaApp {
     this.matchTypeOnline = document.getElementById("match-type-online");
     this.matchTypePvp = document.getElementById("match-type-pvp");
     
-    // Modes (4 Official Game Modes)
+    // Modes (6 Official Game Modes)
     this.modeTrucoPaulista = document.getElementById("mode-truco-paulista");
     this.modeTrucoMaFama = document.getElementById("mode-truco-ma-fama");
     this.modeSuecaTradicional = document.getElementById("mode-sueca-tradicional");
     this.modeSuecaMaFama = document.getElementById("mode-sueca-ma-fama");
+    this.modePokerTradicional = document.getElementById("mode-poker-tradicional");
+    this.modePokerSubmundo = document.getElementById("mode-poker-submundo");
     this.charCarousel = document.getElementById("characters-carousel");
     this.btnStartGame = document.getElementById("btn-start-game");
 
@@ -148,6 +151,54 @@ export class MaFamaApp {
     this.turnPassTitle = document.getElementById("turn-pass-title");
     this.btnRevealTurn = document.getElementById("btn-reveal-turn");
 
+    // Poker Tradicional & Submundo Elements
+    this.standardHudPanel = document.getElementById("standard-hud-panel");
+    this.submundoHudPanel = document.getElementById("submundo-hud-panel");
+    this.submundoAnteVal = document.getElementById("submundo-ante-val");
+    this.submundoBlindType = document.getElementById("submundo-blind-type");
+    this.submundoBlindName = document.getElementById("submundo-blind-name");
+    this.submundoScoreCur = document.getElementById("submundo-score-cur");
+    this.submundoScoreTarget = document.getElementById("submundo-score-target");
+    this.submundoProgressFill = document.getElementById("submundo-progress-fill");
+    this.submundoHandsLeft = document.getElementById("submundo-hands-left");
+    this.submundoDiscardsLeft = document.getElementById("submundo-discards-left");
+    this.submundoMoneyVal = document.getElementById("submundo-money-val");
+    this.submundoJokersTray = document.getElementById("submundo-jokers-tray");
+    this.jokersSlotsContainer = document.getElementById("jokers-slots-container");
+    
+    this.viraContainer = document.getElementById("vira-container");
+    this.pokerCommunityZone = document.getElementById("poker-community-zone");
+    this.pokerStageTag = document.getElementById("poker-stage-tag");
+    this.pokerBoardCards = document.getElementById("poker-board-cards");
+    this.pokerPotVal = document.getElementById("poker-pot-val");
+
+    this.standardActionButtons = document.getElementById("standard-action-buttons");
+    this.pokerActionsBar = document.getElementById("poker-actions-bar");
+    this.btnPokerFold = document.getElementById("btn-poker-fold");
+    this.btnPokerCheckCall = document.getElementById("btn-poker-check-call");
+    this.btnPokerRaise = document.getElementById("btn-poker-raise");
+    this.btnRaiseMin = document.getElementById("btn-raise-min");
+    this.btnRaiseHalfPot = document.getElementById("btn-raise-half-pot");
+    this.btnRaisePot = document.getElementById("btn-raise-pot");
+    this.btnPokerAllin = document.getElementById("btn-poker-allin");
+
+    this.submundoActionsBar = document.getElementById("submundo-actions-bar");
+    this.submundoDetectName = document.getElementById("submundo-detect-name");
+    this.submundoDetectScore = document.getElementById("submundo-detect-score");
+    this.btnSubmundoPlay = document.getElementById("btn-submundo-play");
+    this.btnSubmundoDiscard = document.getElementById("btn-submundo-discard");
+
+    this.submundoShopModal = document.getElementById("submundo-shop-modal");
+    this.shopCardsGrid = document.getElementById("shop-cards-grid");
+    this.shopUserMoney = document.getElementById("shop-user-money");
+    this.shopEquippedCount = document.getElementById("shop-equipped-count");
+    this.btnShopContinue = document.getElementById("btn-shop-continue");
+
+    this.chipsSouth = document.getElementById("chips-south");
+    this.chipsWest = document.getElementById("chips-west");
+    this.chipsNorth = document.getElementById("chips-north");
+    this.chipsEast = document.getElementById("chips-east");
+
     // Modals
     this.challengeModal = document.getElementById("challenge-modal");
     this.challengeTitle = document.getElementById("challenge-title");
@@ -213,12 +264,14 @@ export class MaFamaApp {
       this.audio.playChips();
     });
 
-    // Ruleset modes selection (4 Official Modes)
+    // Ruleset modes selection (6 Official Modes)
     const modeCards = [
       { el: this.modeTrucoPaulista, id: "truco_paulista" },
       { el: this.modeTrucoMaFama, id: "truco_ma_fama" },
       { el: this.modeSuecaTradicional, id: "sueca_tradicional" },
-      { el: this.modeSuecaMaFama, id: "sueca_ma_fama" }
+      { el: this.modeSuecaMaFama, id: "sueca_ma_fama" },
+      { el: this.modePokerTradicional, id: "poker_tradicional" },
+      { el: this.modePokerSubmundo, id: "poker_submundo" }
     ];
 
     modeCards.forEach(({ el, id }) => {
@@ -346,6 +399,7 @@ export class MaFamaApp {
       this.tableScreen.classList.remove("active");
       this.menuScreen.classList.add("active");
       this.hintPanel.hide();
+      this.resetTableModeViews();
       if (this.gameState) {
         this.gameState.state = "IDLE";
       }
@@ -481,6 +535,40 @@ export class MaFamaApp {
         this.handlePlayerRaiseDecision("raise");
       }
     });
+
+    // Poker Tradicional Action Buttons
+    this.btnPokerFold?.addEventListener("click", () => this.handlePokerPlayerAction("FOLD"));
+    this.btnPokerCheckCall?.addEventListener("click", () => {
+      if (!this.pokerGame) return;
+      const toCall = this.pokerGame.highestBetThisRound - this.pokerGame.players.south.currentBet;
+      this.handlePokerPlayerAction(toCall > 0 ? "CALL" : "CHECK");
+    });
+    this.btnPokerRaise?.addEventListener("click", () => {
+      if (!this.pokerGame) return;
+      const amt = this.pokerGame.highestBetThisRound + this.pokerGame.bigBlind;
+      this.handlePokerPlayerAction("RAISE", amt);
+    });
+    this.btnRaiseMin?.addEventListener("click", () => {
+      if (!this.pokerGame) return;
+      const amt = this.pokerGame.highestBetThisRound + this.pokerGame.bigBlind;
+      this.handlePokerPlayerAction("RAISE", amt);
+    });
+    this.btnRaiseHalfPot?.addEventListener("click", () => {
+      if (!this.pokerGame) return;
+      const half = Math.max(this.pokerGame.highestBetThisRound + this.pokerGame.bigBlind, Math.floor(this.pokerGame.potManager.mainPot / 2));
+      this.handlePokerPlayerAction("RAISE", half);
+    });
+    this.btnRaisePot?.addEventListener("click", () => {
+      if (!this.pokerGame) return;
+      const full = Math.max(this.pokerGame.highestBetThisRound + this.pokerGame.bigBlind, this.pokerGame.potManager.mainPot);
+      this.handlePokerPlayerAction("RAISE", full);
+    });
+    this.btnPokerAllin?.addEventListener("click", () => this.handlePokerPlayerAction("ALL_IN"));
+
+    // Submundo Roguelike Action Buttons
+    this.btnSubmundoPlay?.addEventListener("click", () => this.playSubmundoHand());
+    this.btnSubmundoDiscard?.addEventListener("click", () => this.discardSubmundoCards());
+    this.btnShopContinue?.addEventListener("click", () => this.advanceSubmundoNextRound());
   }
 
   // Open full Character Dossier to read powers, personality, and passive
@@ -579,6 +667,16 @@ export class MaFamaApp {
 
   // Start new match
   startNewMatch() {
+    if (this.selectedRuleset === "poker_tradicional") {
+      this.startPokerTradicionalMatch();
+      return;
+    }
+    if (this.selectedRuleset === "poker_submundo") {
+      this.startPokerSubmundoMatch();
+      return;
+    }
+
+    this.resetTableModeViews();
     this.gameState = new GameState(this.selectedPlayerChar, this.selectedOpponentChar, this.selectedRuleset);
     this.gameState.startMatch();
 
@@ -1720,9 +1818,438 @@ export class MaFamaApp {
       }
     });
   }
+
+  // Reset all mode-specific HUDs and overlays back to clean state
+  resetTableModeViews() {
+    if (this.pokerCommunityZone) this.pokerCommunityZone.style.display = "none";
+    if (this.pokerActionsBar) this.pokerActionsBar.style.display = "none";
+    if (this.submundoHudPanel) this.submundoHudPanel.style.display = "none";
+    if (this.submundoJokersTray) this.submundoJokersTray.style.display = "none";
+    if (this.submundoActionsBar) this.submundoActionsBar.style.display = "none";
+    if (this.chipsSouth) this.chipsSouth.style.display = "none";
+    if (this.chipsWest) this.chipsWest.style.display = "none";
+    if (this.chipsNorth) this.chipsNorth.style.display = "none";
+    if (this.chipsEast) this.chipsEast.style.display = "none";
+    if (this.standardHudPanel) this.standardHudPanel.style.display = "flex";
+    if (this.standardActionButtons) this.standardActionButtons.style.display = "flex";
+    if (this.viraContainer) this.viraContainer.style.display = "flex";
+    if (this.seatWest) this.seatWest.style.display = "";
+    if (this.seatNorth) this.seatNorth.style.display = "";
+    if (this.seatEast) this.seatEast.style.display = "";
+  }
+
+  // =========================================================================
+  // POKER TRADICIONAL (TEXAS HOLD'EM ENGINE INTEGRATION)
+  // =========================================================================
+  startPokerTradicionalMatch() {
+    this.resetTableModeViews();
+    this.standardHudPanel.style.display = "none";
+    this.standardActionButtons.style.display = "none";
+    this.viraContainer.style.display = "none";
+    this.pokerCommunityZone.style.display = "flex";
+    this.pokerActionsBar.style.display = "flex";
+    this.chipsSouth.style.display = "block";
+    this.chipsWest.style.display = "block";
+    this.chipsNorth.style.display = "block";
+    this.chipsEast.style.display = "block";
+
+    this.menuScreen.classList.remove("active");
+    this.tableScreen.classList.add("active");
+
+    if (this.playerAvatar) this.playerAvatar.src = this.selectedPlayerChar.avatar;
+    if (this.playerName) this.playerName.textContent = this.selectedPlayerChar.name;
+
+    const remaining = CHARACTERS.filter(c => c.id !== this.selectedPlayerChar.id);
+    if (this.avatarWest) this.avatarWest.src = remaining[0].avatar;
+    if (this.nameWest) this.nameWest.textContent = remaining[0].name;
+    if (this.avatarNorth) this.avatarNorth.src = remaining[1].avatar;
+    if (this.nameNorth) this.nameNorth.textContent = remaining[1].name;
+    if (this.avatarEast) this.avatarEast.src = remaining[2].avatar;
+    if (this.nameEast) this.nameEast.textContent = remaining[2].name;
+
+    this.pokerGame = new BettingEngine(["south", "west", "north", "east"]);
+    this.dealPokerHand();
+  }
+
+  dealPokerHand() {
+    if (!this.pokerGame) return;
+    this.pokerGame.startHand();
+    this.audio.playCardDeal();
+    this.audio.playChips();
+    this.renderPokerBoard();
+    this.renderPokerHands();
+    this.updatePokerHUD();
+
+    if (this.pokerGame.seatOrder[this.pokerGame.currentActorIdx] !== "south") {
+      this.schedulePokerBotTurn();
+    }
+  }
+
+  renderPokerBoard() {
+    if (!this.pokerGame) return;
+    if (this.pokerStageTag) this.pokerStageTag.textContent = this.pokerGame.stage;
+    if (this.pokerPotVal) this.pokerPotVal.textContent = `$${this.pokerGame.potManager.mainPot}`;
+
+    if (this.pokerBoardCards) {
+      this.pokerBoardCards.innerHTML = "";
+      this.pokerGame.communityCards.forEach(c => {
+        const cardImg = document.createElement("img");
+        cardImg.className = "poker-board-card";
+        cardImg.src = c.faceAsset;
+        cardImg.alt = `${c.rank} de ${c.suitName}`;
+        this.pokerBoardCards.appendChild(cardImg);
+      });
+    }
+  }
+
+  renderPokerHands(showdown = false) {
+    if (!this.pokerGame) return;
+    const southPlayer = this.pokerGame.players.south;
+    if (this.playerHandContainer) {
+      this.playerHandContainer.innerHTML = "";
+      southPlayer.holeCards.forEach(card => {
+        const wrap = document.createElement("div");
+        wrap.className = `hand-card-wrapper ${southPlayer.folded ? "card-disabled" : ""}`;
+        wrap.innerHTML = `<img src="${card.faceAsset}" alt="${card.rank} de ${card.suitName}">`;
+        this.playerHandContainer.appendChild(wrap);
+      });
+    }
+
+    // Mini cards for West, North, East
+    ["west", "north", "east"].forEach(seatId => {
+      const el = seatId === "west" ? this.cardsWest : seatId === "north" ? this.cardsNorth : this.cardsEast;
+      const p = this.pokerGame.players[seatId];
+      if (!el || !p) return;
+      el.innerHTML = "";
+      if (p.folded) return;
+      p.holeCards.forEach(c => {
+        const mini = document.createElement("div");
+        mini.className = "mini-card-back";
+        if (showdown) {
+          mini.innerHTML = `<img src="${c.faceAsset}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">`;
+        }
+        el.appendChild(mini);
+      });
+    });
+  }
+
+  updatePokerHUD() {
+    if (!this.pokerGame) return;
+    if (this.chipsSouth) this.chipsSouth.textContent = `$${this.pokerGame.players.south.chips}`;
+    if (this.chipsWest) this.chipsWest.textContent = `$${this.pokerGame.players.west.chips}`;
+    if (this.chipsNorth) this.chipsNorth.textContent = `$${this.pokerGame.players.north.chips}`;
+    if (this.chipsEast) this.chipsEast.textContent = `$${this.pokerGame.players.east.chips}`;
+
+    const currentActor = this.pokerGame.seatOrder[this.pokerGame.currentActorIdx];
+    const isSouth = currentActor === "south" && this.pokerGame.stage !== POKER_STAGES.ROUND_END;
+
+    if (isSouth) {
+      this.playerIdentityPanel?.classList.add("turn-active");
+      if (this.playerTurnStatus) this.playerTurnStatus.textContent = "Sua Vez de Apostar";
+      const toCall = this.pokerGame.highestBetThisRound - this.pokerGame.players.south.currentBet;
+      if (this.btnPokerCheckCall) {
+        this.btnPokerCheckCall.textContent = toCall > 0 ? `PAGAR ($${toCall})` : "PASSAR (CHECK)";
+        this.btnPokerCheckCall.disabled = false;
+      }
+      if (this.btnPokerFold) this.btnPokerFold.disabled = false;
+      if (this.btnPokerRaise) {
+        const nextRaise = this.pokerGame.highestBetThisRound + this.pokerGame.bigBlind;
+        this.btnPokerRaise.textContent = `AUMENTAR ($${nextRaise})`;
+        this.btnPokerRaise.disabled = this.pokerGame.players.south.chips <= toCall;
+      }
+      if (this.btnPokerAllin) this.btnPokerAllin.disabled = false;
+    } else {
+      this.playerIdentityPanel?.classList.remove("turn-active");
+      if (this.playerTurnStatus) {
+        if (this.pokerGame.stage === POKER_STAGES.ROUND_END) {
+          this.playerTurnStatus.textContent = "Mão Finalizada";
+        } else {
+          this.playerTurnStatus.textContent = `Aguardando ${currentActor.toUpperCase()}`;
+        }
+      }
+      if (this.btnPokerCheckCall) this.btnPokerCheckCall.disabled = true;
+      if (this.btnPokerFold) this.btnPokerFold.disabled = true;
+      if (this.btnPokerRaise) this.btnPokerRaise.disabled = true;
+      if (this.btnPokerAllin) this.btnPokerAllin.disabled = true;
+    }
+  }
+
+  handlePokerPlayerAction(actionType, amount = 0) {
+    if (!this.pokerGame) return;
+    const res = this.pokerGame.handleAction("south", actionType, amount);
+    if (!res.success) return;
+    this.audio.playChips();
+    this.renderPokerBoard();
+    this.renderPokerHands();
+    this.updatePokerHUD();
+
+    if (res.finished || this.pokerGame.stage === POKER_STAGES.ROUND_END) {
+      this.finishPokerRound();
+    } else if (this.pokerGame.seatOrder[this.pokerGame.currentActorIdx] !== "south") {
+      this.schedulePokerBotTurn();
+    }
+  }
+
+  schedulePokerBotTurn() {
+    if (!this.pokerGame || this.pokerGame.stage === POKER_STAGES.ROUND_END) return;
+    const botId = this.pokerGame.seatOrder[this.pokerGame.currentActorIdx];
+    if (botId === "south") {
+      this.updatePokerHUD();
+      return;
+    }
+
+    setTimeout(() => {
+      if (!this.pokerGame || this.pokerGame.stage === POKER_STAGES.ROUND_END) return;
+      const decision = this.pokerGame.computeBotAction(botId);
+      this.pokerGame.handleAction(botId, decision.action, decision.amount || 0);
+      this.audio.playChips();
+      this.renderPokerBoard();
+      this.renderPokerHands();
+      this.updatePokerHUD();
+
+      if (this.pokerGame.stage === POKER_STAGES.ROUND_END) {
+        this.finishPokerRound();
+      } else if (this.pokerGame.seatOrder[this.pokerGame.currentActorIdx] !== "south") {
+        this.schedulePokerBotTurn();
+      } else {
+        this.updatePokerHUD();
+      }
+    }, 850);
+  }
+
+  finishPokerRound() {
+    this.renderPokerBoard();
+    this.renderPokerHands(true);
+    this.updatePokerHUD();
+
+    const winInfo = this.pokerGame.winnerInfo;
+    const winnerNames = winInfo && winInfo.winners ? winInfo.winners.map(w => `${w.id.toUpperCase()} (+${w.amount} fichas - ${w.handName})`).join(", ") : "Vencedor";
+
+    if (this.playerTurnStatus) {
+      this.playerTurnStatus.textContent = `Vencedor: ${winnerNames}`;
+    }
+    this.audio.playVictoryChime();
+
+    setTimeout(() => {
+      if (this.selectedRuleset === "poker_tradicional" && this.tableScreen.classList.contains("active")) {
+        this.dealPokerHand();
+      }
+    }, 4500);
+  }
+
+  // =========================================================================
+  // POKER MÁ FAMA: SUBMUNDO (ROGUELIKE CHIPS X MULT ENGINE)
+  // =========================================================================
+  startPokerSubmundoMatch() {
+    this.resetTableModeViews();
+    this.standardHudPanel.style.display = "none";
+    this.standardActionButtons.style.display = "none";
+    this.viraContainer.style.display = "none";
+    if (this.seatWest) this.seatWest.style.display = "none";
+    if (this.seatNorth) this.seatNorth.style.display = "none";
+    if (this.seatEast) this.seatEast.style.display = "none";
+
+    this.submundoHudPanel.style.display = "flex";
+    this.submundoJokersTray.style.display = "flex";
+    this.submundoActionsBar.style.display = "flex";
+
+    this.menuScreen.classList.remove("active");
+    this.tableScreen.classList.add("active");
+
+    if (this.playerAvatar) this.playerAvatar.src = this.selectedPlayerChar.avatar;
+    if (this.playerName) this.playerName.textContent = this.selectedPlayerChar.name;
+    if (this.playerTurnStatus) this.playerTurnStatus.textContent = "Selecione até 5 cartas";
+
+    this.submundoRun = new RunManager();
+    this.submundoSelectedCardIndices = new Set();
+    this.renderSubmundoTable();
+  }
+
+  renderSubmundoTable() {
+    if (!this.submundoRun) return;
+    const run = this.submundoRun;
+
+    if (this.submundoAnteVal) this.submundoAnteVal.textContent = `${run.ante}/8`;
+    if (this.submundoBlindType) this.submundoBlindType.textContent = `RODADA ${run.roundInAnte}`;
+    if (this.submundoBlindName) {
+      this.submundoBlindName.textContent = run.currentBoss ? run.currentBoss.name : (run.roundInAnte === 1 ? "Pequena Blind" : "Grande Blind");
+    }
+    if (this.submundoScoreCur) this.submundoScoreCur.textContent = run.currentScore;
+    if (this.submundoScoreTarget) this.submundoScoreTarget.textContent = run.targetScore;
+
+    const pct = Math.min(100, Math.floor((run.currentScore / run.targetScore) * 100));
+    if (this.submundoProgressFill) this.submundoProgressFill.style.width = `${pct}%`;
+
+    if (this.submundoHandsLeft) this.submundoHandsLeft.textContent = run.handsLeft;
+    if (this.submundoDiscardsLeft) this.submundoDiscardsLeft.textContent = run.discardsLeft;
+    if (this.submundoMoneyVal) this.submundoMoneyVal.textContent = `$${run.money}`;
+
+    // Render Equipped Jokers Tray
+    if (this.jokersSlotsContainer) {
+      this.jokersSlotsContainer.innerHTML = "";
+      for (let i = 0; i < run.jokerSlots; i++) {
+        const slot = document.createElement("div");
+        const j = run.equippedJokers[i];
+        if (j) {
+          slot.className = "joker-slot filled";
+          slot.title = `${j.name}: ${j.desc}`;
+          slot.innerHTML = `<img src="${j.image}" alt="${j.name}">`;
+        } else {
+          slot.className = "joker-slot";
+          slot.innerHTML = `<span style="font-size: 0.75rem; color: rgba(216,173,102,0.4); font-weight: bold;">+</span>`;
+        }
+        this.jokersSlotsContainer.appendChild(slot);
+      }
+    }
+
+    // Render 8 Hand Cards
+    if (this.playerHandContainer) {
+      this.playerHandContainer.innerHTML = "";
+      run.hand.forEach((card, idx) => {
+        const wrap = document.createElement("div");
+        const isSelected = this.submundoSelectedCardIndices.has(idx);
+        wrap.className = `hand-card-wrapper ${isSelected ? "selected" : ""}`;
+        if (isSelected) {
+          wrap.style.transform = "translateY(-16px)";
+          wrap.style.boxShadow = "0 8px 24px rgba(240, 214, 154, 0.4)";
+        }
+        wrap.innerHTML = `<img src="${card.faceAsset}" alt="${card.rank} de ${card.suitName}">`;
+        wrap.addEventListener("click", () => this.toggleSubmundoCardSelection(idx));
+        this.playerHandContainer.appendChild(wrap);
+      });
+    }
+
+    this.updateSubmundoHandDetection();
+  }
+
+  toggleSubmundoCardSelection(cardIdx) {
+    if (this.submundoSelectedCardIndices.has(cardIdx)) {
+      this.submundoSelectedCardIndices.delete(cardIdx);
+    } else {
+      if (this.submundoSelectedCardIndices.size >= 5) {
+        return;
+      }
+      this.submundoSelectedCardIndices.add(cardIdx);
+    }
+    this.audio.playChips();
+    this.renderSubmundoTable();
+  }
+
+  updateSubmundoHandDetection() {
+    if (!this.submundoRun) return;
+    const selected = Array.from(this.submundoSelectedCardIndices).map(i => this.submundoRun.hand[i]).filter(Boolean);
+
+    if (selected.length === 0) {
+      if (this.submundoDetectName) this.submundoDetectName.textContent = "Selecione até 5 cartas";
+      if (this.submundoDetectScore) this.submundoDetectScore.textContent = "0 × 0";
+      if (this.btnSubmundoPlay) this.btnSubmundoPlay.disabled = true;
+      if (this.btnSubmundoDiscard) this.btnSubmundoDiscard.disabled = true;
+      return;
+    }
+
+    const evaluation = HandEvaluator.evaluate5Cards(selected);
+    const handName = evaluation.type.name;
+    const baseChips = evaluation.type.baseChips;
+    const baseMult = evaluation.type.baseMult;
+
+    if (this.submundoDetectName) this.submundoDetectName.textContent = handName;
+    if (this.submundoDetectScore) this.submundoDetectScore.textContent = `${baseChips} Fichas × ${baseMult} Mult`;
+
+    if (this.btnSubmundoPlay) this.btnSubmundoPlay.disabled = false;
+    if (this.btnSubmundoDiscard) this.btnSubmundoDiscard.disabled = this.submundoRun.discardsLeft <= 0;
+  }
+
+  playSubmundoHand() {
+    if (!this.submundoRun) return;
+    const indices = Array.from(this.submundoSelectedCardIndices);
+    if (indices.length === 0) return;
+
+    const res = this.submundoRun.playHand(indices);
+    this.submundoSelectedCardIndices.clear();
+
+    this.audio.playCardPlay();
+    this.audio.playChips();
+
+    this.renderSubmundoTable();
+
+    if (this.submundoRun.state === "ROUND_WON") {
+      this.audio.playVictoryChime();
+      setTimeout(() => this.openSubmundoShop(), 1200);
+    } else if (this.submundoRun.state === "GAME_OVER") {
+      alert(`FIM DA RUN! Você acumulou ${this.submundoRun.currentScore} pontos no Ante ${this.submundoRun.ante}.`);
+      this.startPokerSubmundoMatch();
+    }
+  }
+
+  discardSubmundoCards() {
+    if (!this.submundoRun || this.submundoRun.discardsLeft <= 0) return;
+    const indices = Array.from(this.submundoSelectedCardIndices);
+    if (indices.length === 0) return;
+
+    this.submundoRun.discardCards(indices);
+    this.submundoSelectedCardIndices.clear();
+    this.audio.playCardDeal();
+    this.renderSubmundoTable();
+  }
+
+  openSubmundoShop() {
+    if (!this.submundoRun) return;
+    this.submundoRun.generateShop();
+
+    if (this.shopUserMoney) this.shopUserMoney.textContent = `$${this.submundoRun.money}`;
+    if (this.shopEquippedCount) this.shopEquippedCount.textContent = `${this.submundoRun.equippedJokers.length}/5`;
+
+    if (this.shopCardsGrid) {
+      this.shopCardsGrid.innerHTML = "";
+      this.submundoRun.shopItems.forEach((entry, idx) => {
+        const cardBox = document.createElement("div");
+        cardBox.className = "shop-item-card";
+
+        const imgTag = entry.type === "joker"
+          ? `<img src="${entry.item.image}" alt="${entry.item.name}">`
+          : `<div style="width: 80px; height: 110px; background: #245247; border: 1.5px solid var(--gold); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 10px;">🪐</div>`;
+
+        cardBox.innerHTML = `
+          ${imgTag}
+          <div class="shop-item-title">${entry.item.name}</div>
+          <div class="shop-item-desc">${entry.type === "joker" ? entry.item.desc : `Aumenta o valor de ${entry.item.handName} em +${entry.item.addChips} Fichas e +${entry.item.addMult} Mult`}</div>
+          <button class="shop-item-buy-btn" ${this.submundoRun.money < entry.cost ? "disabled" : ""}>COMPRAR ($${entry.cost})</button>
+        `;
+
+        const buyBtn = cardBox.querySelector(".shop-item-buy-btn");
+        buyBtn.addEventListener("click", () => {
+          if (this.submundoRun.buyItem(idx)) {
+            this.audio.playChips();
+            this.openSubmundoShop();
+          }
+        });
+
+        this.shopCardsGrid.appendChild(cardBox);
+      });
+    }
+
+    if (this.submundoShopModal) this.submundoShopModal.classList.add("active");
+  }
+
+  advanceSubmundoNextRound() {
+    if (this.submundoShopModal) this.submundoShopModal.classList.remove("active");
+    if (!this.submundoRun) return;
+
+    this.submundoRun.advanceNextRound();
+    this.audio.playCardDeal();
+
+    if (this.submundoRun.state === "VICTORY") {
+      alert("PARABÉNS! VOCÊ ZEROU O SUBMUNDO DO MÁ FAMA (ANTE 8 CONCLUÍDO)!");
+      this.startPokerSubmundoMatch();
+    } else {
+      this.renderSubmundoTable();
+    }
+  }
 }
 
 // Initialize on DOM load
-window.addEventListener("DOMContentLoaded", () => {
-  window.app = new MaFamaApp();
-});
+if (typeof window !== "undefined") {
+  window.addEventListener("DOMContentLoaded", () => {
+    window.app = new MaFamaApp();
+  });
+}
