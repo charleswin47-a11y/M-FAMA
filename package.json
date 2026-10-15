@@ -1,0 +1,15 @@
+{
+  "name": "ma-fama",
+  "version": "1.0.0",
+  "description": "MÁ FAMA - Jogo de Cartas Vintage Noir com Multiplayer Real-time",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.22.0"
+  },
+  "devDependencies": {
+    "jsdom": "^30.1.3"
+  }
+}
