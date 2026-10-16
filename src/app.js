@@ -256,25 +256,25 @@ export class MaFamaApp {
 
     if (targetSeat === "south" || targetSeat === "player") {
       this.winnerPointerOverlay.classList.add("point-south");
-      if (this.winnerArrowGlyph) this.winnerArrowGlyph.textContent = "⬇️";
+      if (this.winnerArrowGlyph) this.winnerArrowGlyph.innerHTML = ICONS.arrowDown;
       if (this.playerIdentityPanel) this.playerIdentityPanel.classList.add("seat-winner-glow");
     } else if (targetSeat === "north" || targetSeat === "bot") {
       this.winnerPointerOverlay.classList.add("point-north");
-      if (this.winnerArrowGlyph) this.winnerArrowGlyph.textContent = "⬆️";
+      if (this.winnerArrowGlyph) this.winnerArrowGlyph.innerHTML = ICONS.arrowUp;
       const wrapNorth = document.getElementById("wrap-north");
       if (wrapNorth) wrapNorth.classList.add("seat-winner-glow");
     } else if (targetSeat === "west") {
       this.winnerPointerOverlay.classList.add("point-west");
-      if (this.winnerArrowGlyph) this.winnerArrowGlyph.textContent = "⬅️";
+      if (this.winnerArrowGlyph) this.winnerArrowGlyph.innerHTML = ICONS.arrowLeft;
       const wrapWest = document.getElementById("wrap-west");
       if (wrapWest) wrapWest.classList.add("seat-winner-glow");
     } else if (targetSeat === "east") {
       this.winnerPointerOverlay.classList.add("point-east");
-      if (this.winnerArrowGlyph) this.winnerArrowGlyph.textContent = "➡️";
+      if (this.winnerArrowGlyph) this.winnerArrowGlyph.innerHTML = ICONS.arrowRight;
       const wrapEast = document.getElementById("wrap-east");
       if (wrapEast) wrapEast.classList.add("seat-winner-glow");
     } else {
-      if (this.winnerArrowGlyph) this.winnerArrowGlyph.textContent = "⚔️";
+      if (this.winnerArrowGlyph) this.winnerArrowGlyph.innerHTML = ICONS.swords;
     }
 
     if (this.winnerBannerTitle) this.winnerBannerTitle.textContent = title;
@@ -538,9 +538,17 @@ export class MaFamaApp {
       }
     });
 
-    // Ability modal close
+    // Ability modal close & confirm
     this.btnCloseAbilityModal?.addEventListener("click", () => {
-      this.abilityModal.classList.remove("active");
+      this.abilityModal?.classList.remove("active");
+      if (this.gameState) {
+        this.updateTableUI();
+      }
+    });
+
+    const btnAbilityConfirm = document.getElementById("btn-ability-confirm");
+    btnAbilityConfirm?.addEventListener("click", () => {
+      this.abilityModal?.classList.remove("active");
       if (this.gameState) {
         this.updateTableUI();
       }
@@ -655,10 +663,10 @@ export class MaFamaApp {
     this.charCarousel.innerHTML = "";
 
     const specialtyIcons = {
-      trampa: "♟️",
-      veneno: "🥀",
-      calibre: "🔫",
-      pixel: "🃏"
+      trampa: ICONS.chessKnight,
+      veneno: ICONS.rose,
+      calibre: ICONS.crosshair,
+      pixel: ICONS.jokerHat
     };
 
     CHARACTERS.forEach(char => {
@@ -670,14 +678,14 @@ export class MaFamaApp {
           ${ICONS.eye}
           <span class="inspect-text">FICHA</span>
         </button>
-        <span class="char-card-selected-tag">✓ SELECIONADO</span>
+        <span class="char-card-selected-tag">${ICONS.check} SELECIONADO</span>
         <div class="char-img-wrap">
           <img src="${char.portrait}" alt="${char.name}">
         </div>
         <div class="char-card-footer">
           <div class="char-footer-top">
             <span class="name">${char.name}</span>
-            <span class="char-badge-pill">${specialtyIcons[char.id] || "✦"} ${char.subtitle}</span>
+            <span class="char-badge-pill"><span class="badge-svg-icon" style="display:inline-flex; align-items:center; margin-right:4px;">${specialtyIcons[char.id] || ICONS.cards}</span>${char.subtitle}</span>
           </div>
           <div class="char-power-row">
             <span class="power-prefix">PODER:</span>
@@ -749,6 +757,7 @@ export class MaFamaApp {
     }
 
     this.resetTableModeViews();
+    this.revealedBotCardId = null;
     this.gameState = new GameState(this.selectedPlayerChar, this.selectedOpponentChar, this.selectedRuleset);
     this.gameState.startMatch();
 
@@ -853,7 +862,15 @@ export class MaFamaApp {
       this.cardsWest.innerHTML = "";
       for (let i = 0; i < oppCardsCount; i++) {
         const mini = document.createElement("div");
-        mini.className = "mini-card-back";
+        const botCard = this.gameState.botHand ? this.gameState.botHand[i] : null;
+        if (botCard && botCard.id === this.revealedBotCardId) {
+          mini.className = "mini-card-back mini-card-revealed";
+          mini.title = `Carta Revelada: ${botCard.rank.toUpperCase()}`;
+          mini.style.cssText = "display: flex; align-items: center; justify-content: center; border: 2px solid var(--gold-bright); box-shadow: 0 0 12px rgba(216, 173, 102, 0.8); background: radial-gradient(circle, #245247 0%, #121719 100%);";
+          mini.innerHTML = `<span style="font-size: 0.75rem; color: var(--gold-bright); font-weight: 800;">${botCard.rank.toUpperCase()}</span>`;
+        } else {
+          mini.className = "mini-card-back";
+        }
         this.cardsWest.appendChild(mini);
       }
     }
@@ -1218,23 +1235,36 @@ export class MaFamaApp {
 
   // Update Ability Button
   updateAbilityButton() {
-    if (this.selectedRuleset !== "ma_fama" || this.gameState.abilityManager.playerAbilityUsed) {
+    if (!this.btnAbility || !this.gameState) return;
+
+    const isPowersMode = this.selectedRuleset === "truco_ma_fama" || 
+                         this.selectedRuleset === "sueca_ma_fama" || 
+                         this.selectedRuleset === "ma_fama" ||
+                         (this.selectedRuleset && this.selectedRuleset.includes("ma_fama"));
+
+    if (!isPowersMode) {
+      this.btnAbility.style.display = "none";
+      return;
+    }
+    this.btnAbility.style.display = "inline-flex";
+
+    if (this.gameState.abilityManager.playerAbilityUsed) {
       this.btnAbility.disabled = true;
-      this.abilityBtnText.textContent = `${this.selectedPlayerChar.mainPowerName} (Utilizado)`;
+      if (this.abilityBtnText) this.abilityBtnText.textContent = `${this.selectedPlayerChar.mainPowerName} (Usado)`;
       return;
     }
 
     const timingContext = {
       trickIndex: this.gameState.currentTrick,
-      trickCardsCount: this.gameState.tableCards.length,
+      trickCardsCount: this.gameState.tableCards ? this.gameState.tableCards.length : 0,
       lastTrickLostByPlayer: this.gameState.lastTrickLostByPlayer,
       isPlayerTurn: this.gameState.turnPlayer === "player",
-      opponentCardVisible: this.gameState.tableCards.some(tc => tc.playerId === "bot")
+      opponentCardVisible: this.gameState.tableCards ? this.gameState.tableCards.some(tc => tc.playerId === "bot") : false
     };
 
     const canUse = this.gameState.abilityManager.canUsePlayerAbility(this.selectedPlayerChar.id, timingContext);
     this.btnAbility.disabled = !canUse;
-    this.abilityBtnText.textContent = `${this.selectedPlayerChar.mainPowerName}`;
+    if (this.abilityBtnText) this.abilityBtnText.textContent = this.selectedPlayerChar.mainPowerName;
   }
 
   // Trigger character powers
@@ -1244,20 +1274,16 @@ export class MaFamaApp {
       return;
     }
 
-    if (!this.gameState) return;
+    if (!this.gameState || this.gameState.abilityManager.playerAbilityUsed) return;
     const charId = this.selectedPlayerChar.id;
 
     if (charId === "trampa") {
-      // Carta Marcada: visualiza temporariamente uma carta da mão do oponente
       this.executeTrampaCartaMarcada();
     } else if (charId === "veneno") {
-      // Jogo Psicológico: estima risco estratégico
       this.executeVenenoJogoPsicologico();
     } else if (charId === "calibre") {
-      // Aposta de Sangue: declara risco elevado e aumenta a aposta
       this.executeCalibreApostaDeSangue();
     } else if (charId === "pixel") {
-      // Plano B: substitui ou reorganiza carta antes do commit
       this.executePixelPlanoB();
     }
   }
@@ -1266,7 +1292,10 @@ export class MaFamaApp {
     const char = this.selectedPlayerChar;
     this.audio.playCharacterSignature(char.id);
 
-    this.abilityModalTitle.textContent = `${char.mainPowerName} — ${char.name}`;
+    const modalIcon = document.getElementById("ability-modal-icon");
+    if (modalIcon) modalIcon.innerHTML = ICONS.power;
+
+    this.abilityModalTitle.textContent = `${char.mainPowerName.toUpperCase()} — ${char.name.toUpperCase()}`;
     let desc = "";
     if (char.id === "trampa") {
       desc = `<p style="margin-bottom: 12px; color: var(--text-secondary);">Com a Memória de Tubarão, Trampa monitora as cartas jogadas e a rotação dos naipes.</p>
@@ -1284,75 +1313,230 @@ export class MaFamaApp {
 
     this.abilityModalContent.innerHTML = `
       <div style="text-align: center; margin-bottom: 12px;">
-        <img src="${char.avatar}" style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--gold); display: inline-block; box-shadow: 0 0 15px rgba(216, 173, 102, 0.4);">
+        <img src="${char.avatar}" alt="${char.name}" style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--gold); display: inline-block; box-shadow: 0 0 15px rgba(216, 173, 102, 0.4);">
       </div>
       ${desc}
     `;
     this.abilityModal.classList.add("active");
   }
 
+  // 1. TRAMPA: CARTA MARCADA
   executeTrampaCartaMarcada() {
-    const card = this.gameState.abilityManager.executeLeituraFria(this.gameState.botHand);
+    if (!this.gameState || !this.gameState.botHand || this.gameState.botHand.length === 0) return;
+    const card = this.gameState.abilityManager.executeCartaMarcada(this.gameState.botHand);
     if (!card) return;
 
     this.gameState.abilityManager.playerAbilityUsed = true;
+    this.audio.playChips();
     this.audio.playManilhaChime();
-    this.gameState.logEvent(`Trampa ativou Carta Marcada: revelou uma carta do adversário!`, "win");
+    this.gameState.logEvent(`Trampa ativou Carta Marcada: espiou uma carta secreta do oponente!`, "win");
 
-    this.abilityModalTitle.textContent = "Carta Marcada — Trampa";
+    const modalIcon = document.getElementById("ability-modal-icon");
+    if (modalIcon) modalIcon.innerHTML = ICONS.chessKnight;
+    this.abilityModalTitle.textContent = "CARTA MARCADA — TRAMPA";
+
+    const isManilha = card.rank.toLowerCase() === (this.gameState.manilhaRank || "").toLowerCase();
+
     this.abilityModalContent.innerHTML = `
-      <p style="margin-bottom: 14px; color: var(--text-secondary);">Com a Memória de Tubarão e olhos atentos, Trampa identificou uma das cartas do oponente:</p>
-      <img src="${card.faceAsset}" style="width: 110px; height: 160px; border-radius: 8px; border: 2px solid var(--gold); display: block; margin: 0 auto 12px; box-shadow: 0 0 25px rgba(216, 173, 102, 0.4);">
-      <p style="font-size: 0.8rem; color: var(--gold-bright);">Informação privada. Use para antecipar a vaza decisiva!</p>
-    `;
-    this.abilityModal.classList.add("active");
-  }
-
-  executeVenenoJogoPsicologico() {
-    this.gameState.abilityManager.playerAbilityUsed = true;
-    this.audio.playVenenoWhisper();
-    this.gameState.logEvent(`Veneno ativou Jogo Psicológico: avaliando riscos da mesa.`, "win");
-
-    // Estimate probability
-    const botPower = this.gameState.ai.evaluateHandPower(this.gameState.botHand, this.gameState.manilhaRank);
-    const riskLevel = botPower > 65 ? "ALTO RISCO (Oponente possui cartas fortes)" : "BAIXO RISCO (Oponente vulnerável a blefe)";
-
-    this.abilityModalTitle.textContent = "Jogo Psicológico — Veneno";
-    this.abilityModalContent.innerHTML = `
-      <p style="margin-bottom: 12px; color: var(--text-secondary);">Passiva Sangue Frio ativa. Leitura comportamental concluída:</p>
-      <div style="background: rgba(0,0,0,0.4); border: 1px solid var(--wine); border-radius: 8px; padding: 14px; text-align: center; margin-bottom: 10px;">
-        <strong style="color: var(--gold-bright); font-size: 1.1rem; display: block;">${riskLevel}</strong>
-        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 6px;">Manilha da mesa: ${this.gameState.manilhaRank.toUpperCase()}</p>
+      <div style="text-align: center; margin-bottom: 12px;">
+        <span style="font-size: 0.78rem; color: var(--gold); text-transform: uppercase; letter-spacing: 2px;">INFORMAÇÃO PRIVILEGIADA OBTIDA</span>
+        <h3 style="color: #fff; font-size: 1.15rem; margin-top: 4px;">O rival esconde na mão:</h3>
       </div>
-      <p style="font-size: 0.8rem; color: var(--gold);">Veneno mantém a calma mesmo sob pressão extrema.</p>
+      <div style="display: flex; justify-content: center; align-items: center; gap: 20px; margin: 15px 0;">
+        <img src="${card.faceAsset}" alt="${card.rank} de ${card.suit}" style="width: 105px; height: 150px; border-radius: 8px; border: 2.5px solid var(--gold-bright); box-shadow: 0 0 30px rgba(216, 173, 102, 0.6);">
+        <div style="text-align: left; max-width: 240px;">
+          <div style="font-weight: 800; font-size: 1.25rem; color: var(--gold-bright);">${card.rank.toUpperCase()} DE ${(card.suitName || card.suit).toUpperCase()}</div>
+          <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 6px; line-height: 1.4;">
+            ${isManilha ? '<strong style="color: #ff5555; display:block;">ATENÇÃO: É UMA MANILHA!</strong> Cuidado com essa carta na vaza decisiva.' : 'Carta comum. Oponente precisará blefar se não possuir manilhas.'}
+          </div>
+        </div>
+      </div>
+      <p style="font-size: 0.82rem; color: var(--gold);">Memória de Tubarão: Esta carta permanecerá destacada para você na mão do rival!</p>
     `;
+
+    this.revealedBotCardId = card.id;
     this.abilityModal.classList.add("active");
+    this.updateTableUI();
   }
 
+  // 2. VENENO: JOGO PSICOLÓGICO
+  executeVenenoJogoPsicologico() {
+    if (!this.gameState || !this.gameState.botHand) return;
+    this.gameState.abilityManager.playerAbilityUsed = true;
+    this.audio.playChips();
+    this.audio.playVenenoWhisper();
+
+    const manilhaRank = (this.gameState.manilhaRank || "").toLowerCase();
+    const hasManilha = this.gameState.abilityManager.executeDossie(this.gameState.botHand, "manilha", manilhaRank);
+    const manilhaCount = this.gameState.botHand.filter(c => c.rank.toLowerCase() === manilhaRank).length;
+
+    let riskLevel = "BAIXO RISCO (Rival vulnerável a pressão)";
+    let riskColor = "#55dd88";
+    let tacticalAdvice = "O oponente NÃO possui nenhuma Manilha na mão! É o momento ideal para pedir TRUCO e forçar a desistência.";
+
+    if (hasManilha) {
+      riskLevel = manilhaCount > 1 ? "PERIGO CRÍTICO (Rival possui múltiplas Manilhas!)" : "RISCO MODERADO (Rival possui 1 Manilha)";
+      riskColor = manilhaCount > 1 ? "#ff5555" : "#ffaa44";
+      tacticalAdvice = "O oponente possui Manilha na mão! Não blefe alto a menos que você tenha uma carta superior (Zap ou Copas).";
+    }
+
+    this.gameState.logEvent(`Veneno ativou Jogo Psicológico: escaneamento tático concluído!`, "win");
+
+    const modalIcon = document.getElementById("ability-modal-icon");
+    if (modalIcon) modalIcon.innerHTML = ICONS.rose;
+    this.abilityModalTitle.textContent = "JOGO PSICOLÓGICO — VENENO";
+    this.abilityModalContent.innerHTML = `
+      <div style="background: rgba(116, 38, 58, 0.25); border: 1.5px solid var(--wine); border-radius: 8px; padding: 16px; margin-bottom: 15px; text-align: left;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <span style="font-size: 0.75rem; color: var(--gold); letter-spacing: 1.5px; text-transform: uppercase;">DOSSIÊ DE PRESSÃO PSICOLÓGICA</span>
+          <span style="font-size: 0.75rem; padding: 3px 8px; border-radius: 10px; background: rgba(0,0,0,0.5); color: ${riskColor}; font-weight: 700;">${hasManilha ? 'MANILHA CONFIRMADA' : 'SEM MANILHAS'}</span>
+        </div>
+        <div style="font-size: 1.15rem; font-weight: 800; color: ${riskColor}; margin-bottom: 6px;">
+          ${riskLevel}
+        </div>
+        <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; margin: 0;">
+          ${tacticalAdvice}
+        </p>
+      </div>
+      <div style="font-size: 0.82rem; color: var(--gold); text-align: center;">
+        Passiva Sangue Frio: Os blefes de Veneno causam hesitação imediata nos oponentes da mesa!
+      </div>
+    `;
+
+    this.abilityModal.classList.add("active");
+    this.updateTableUI();
+  }
+
+  // 3. CALIBRE: APOSTA DE SANGUE
   executeCalibreApostaDeSangue() {
+    if (!this.gameState) return;
     this.gameState.abilityManager.playerAbilityUsed = true;
+    this.audio.playChips();
     this.audio.playTrucoSting();
-    this.gameState.logEvent(`Calibre ativou Aposta de Sangue: pressão máxima na rodada!`, "raise");
 
-    this.abilityModalTitle.textContent = "Aposta de Sangue — Calibre";
+    // Table screen vibration effect
+    this.tableScreen.classList.add("intimidation-shake");
+    setTimeout(() => this.tableScreen.classList.remove("intimidation-shake"), 800);
+
+    const oldStake = this.gameState.currentStake;
+    const newStake = Math.max(6, oldStake + 3);
+    this.gameState.currentStake = newStake;
+    this.gameState.lastRaiser = "player";
+
+    this.gameState.logEvent(`Calibre ativou Aposta de Sangue! Aposta saltou direto para ${newStake} TENTOS!`, "raise");
+
+    const modalIcon = document.getElementById("ability-modal-icon");
+    if (modalIcon) modalIcon.innerHTML = ICONS.crosshair;
+    this.abilityModalTitle.textContent = "APOSTA DE SANGUE — CALIBRE";
     this.abilityModalContent.innerHTML = `
-      <p style="color: var(--gold-bright); font-size: 1.1rem; margin-bottom: 10px;">Calibre colocou o peso da banca na mesa!</p>
-      <p style="color: var(--text-secondary); font-size: 0.85rem;">Passiva Sangue de Ferro: Ninguém blefa duas vezes quando o valor sobe. Preparado para pedir aumento?</p>
+      <div style="text-align: center; margin-bottom: 15px;">
+        <span style="font-size: 0.8rem; color: #ff5555; letter-spacing: 2px; text-transform: uppercase;">INTIMIDAÇÃO PESADA NA BANCA</span>
+        <h2 style="font-size: 2.2rem; color: var(--gold-bright); margin: 6px 0; font-family: var(--font-title);">VALE ${newStake} TENTOS!</h2>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); max-width: 380px; margin: 0 auto;">
+          Calibre colocou o revólver sobre o feltro. A rodada foi forçada para <strong>${newStake} TENTOS</strong> instantaneamente!
+        </p>
+      </div>
+      <div style="background: rgba(0,0,0,0.5); border: 1px solid rgba(216, 173, 102, 0.3); border-radius: 8px; padding: 12px; font-size: 0.82rem; color: var(--gold);">
+        O oponente ficou abalado com a pressão violenta. Ninguém blefa duas vezes quando o calibre sobe!
+      </div>
     `;
+
     this.abilityModal.classList.add("active");
+
+    // Bot intimidation response check
+    setTimeout(() => {
+      const manilhaRank = (this.gameState.manilhaRank || "").toLowerCase();
+      const botHasManilha = this.gameState.botHand && this.gameState.botHand.some(c => c.rank.toLowerCase() === manilhaRank);
+      if (!botHasManilha && Math.random() < 0.6) {
+        this.triggerOpponentSpeech("Calibre... você tá maluco! Essa mão é sua, eu corro!");
+        this.gameState.logEvent(`${this.selectedOpponentChar.name} fugiu aterrorizado pela Aposta de Sangue!`, "win");
+        setTimeout(() => {
+          this.gameState.respondToRaise("bot", "fold");
+          this.updateTableUI();
+          setTimeout(() => {
+            this.revealedBotCardId = null;
+            this.gameState.startNewHand();
+            this.audio.playCardDeal();
+            this.updateTableUI();
+          }, 1500);
+        }, 1200);
+      } else {
+        this.triggerOpponentSpeech("Você quer sangue, Calibre? Então vamos ver quem tomba!");
+      }
+    }, 1000);
+
+    this.updateTableUI();
   }
 
+  // 4. PIXEL: PLANO B
   executePixelPlanoB() {
-    this.gameState.abilityManager.playerAbilityUsed = true;
-    this.audio.playGlitch();
-    this.gameState.logEvent(`Pixel ativou Plano B: adaptando a mão no reflexo!`, "win");
+    if (!this.gameState || !this.gameState.playerHand || this.gameState.playerHand.length === 0) return;
 
-    this.abilityModalTitle.textContent = "Plano B — Pixel";
+    const modalIcon = document.getElementById("ability-modal-icon");
+    if (modalIcon) modalIcon.innerHTML = ICONS.jokerHat;
+    this.abilityModalTitle.textContent = "PLANO B — PIXEL";
+
+    let cardsHtml = `<div style="display: flex; justify-content: center; gap: 14px; margin: 18px 0; flex-wrap: wrap;">`;
+    this.gameState.playerHand.forEach((c, idx) => {
+      cardsHtml += `
+        <div style="text-align: center;">
+          <img src="${c.faceAsset}" alt="${c.rank} de ${c.suit}" style="width: 85px; height: 125px; border-radius: 6px; border: 1.5px solid var(--gold); display: block; margin-bottom: 8px;">
+          <button class="btn-secondary pixel-swap-btn" data-card-idx="${idx}" style="padding: 6px 12px; font-size: 0.75rem; width: 100%; border-color: var(--gold); cursor: pointer;">
+            TROCAR
+          </button>
+        </div>
+      `;
+    });
+    cardsHtml += `</div>`;
+
     this.abilityModalContent.innerHTML = `
-      <p style="color: var(--gold-bright); font-size: 1.1rem; margin-bottom: 8px;">Gambiarra ativada!</p>
-      <p style="color: var(--text-secondary); font-size: 0.85rem;">Selecione qualquer carta disponível na sua mão para responder de forma inesperada.</p>
+      <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 6px;">
+        Gambiarra ativada! Escolha qual carta da sua mão você deseja <strong>descartar</strong> para sacar uma nova carta do baralho:
+      </p>
+      ${cardsHtml}
+      <p style="font-size: 0.8rem; color: var(--gold);">Pixel reorganiza o jogo no reflexo!</p>
     `;
+
     this.abilityModal.classList.add("active");
+
+    // Add click listeners to swap buttons
+    const swapBtns = this.abilityModalContent.querySelectorAll(".pixel-swap-btn");
+    swapBtns.forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const cIdx = parseInt(e.currentTarget.getAttribute("data-card-idx"), 10);
+        const swapResult = this.gameState.abilityManager.executePlanoBDeckSwap(
+          this.gameState.playerHand,
+          cIdx,
+          this.gameState.deckManager.deck
+        );
+
+        if (swapResult) {
+          this.gameState.abilityManager.playerAbilityUsed = true;
+          this.audio.playChips();
+          this.audio.playGlitch();
+          this.gameState.logEvent(`Pixel ativou Plano B: trocou ${swapResult.oldCard.rank.toUpperCase()} por ${swapResult.newCard.rank.toUpperCase()}!`, "win");
+
+          this.abilityModalContent.innerHTML = `
+            <div style="text-align: center; padding: 15px 0;">
+              <span style="font-size: 0.8rem; color: #55dd88; letter-spacing: 2px; text-transform: uppercase;">CARTA TROCADA COM SUCESSO!</span>
+              <div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin: 15px 0;">
+                <div style="opacity: 0.5;">
+                  <span style="font-size: 0.75rem; color: #888;">Descartada:</span>
+                  <img src="${swapResult.oldCard.faceAsset}" style="width: 70px; height: 100px; border-radius: 6px; display: block; margin-top: 4px;">
+                </div>
+                <div style="font-size: 1.5rem; color: var(--gold); display: flex; align-items: center;">${ICONS.arrowRight}</div>
+                <div>
+                  <span style="font-size: 0.75rem; color: var(--gold-bright); font-weight: 700;">Nova Carta:</span>
+                  <img src="${swapResult.newCard.faceAsset}" style="width: 85px; height: 125px; border-radius: 6px; border: 2px solid var(--gold); display: block; margin-top: 4px; box-shadow: 0 0 20px rgba(216, 173, 102, 0.5);">
+                </div>
+              </div>
+              <p style="font-size: 0.85rem; color: var(--text-secondary);">A nova carta já está pronta na sua mão para ser jogada!</p>
+            </div>
+          `;
+          this.updateTableUI();
+        }
+      });
+    });
   }
 
   // Trigger speech balloon on bot
@@ -1582,10 +1766,10 @@ export class MaFamaApp {
           <span class="seat-slot-badge ${slot.team}">${slot.teamLabel}</span>
           <img class="waiting-seat-avatar" src="${charDef.avatar}" alt="${p.name}">
           <div class="waiting-seat-info">
-            <div class="w-name">${p.name} ${p.isHost ? "👑" : ""}</div>
+            <div class="w-name">${p.name} ${p.isHost ? `<span class="host-crown-badge" title="Dono da Sala" style="display:inline-flex; vertical-align:middle; margin-left:4px; color:var(--gold-bright);">${ICONS.crown}</span>` : ""}</div>
             <div class="w-role">${slot.label}</div>
             <div class="w-status ${p.isReady ? "ready" : "waiting"}">
-              ${p.isReady ? "✓ PRONTO PARA JOGAR" : "AGUARDANDO..."}
+              ${p.isReady ? `<span style="color:#55dd88; display:inline-flex; align-items:center; gap:4px;">${ICONS.check} PRONTO PARA JOGAR</span>` : "AGUARDANDO..."}
             </div>
           </div>
         `;
@@ -2209,7 +2393,7 @@ export class MaFamaApp {
       this.showWinnerPointer(
         primaryWinner.id,
         `${winnerName.toUpperCase()} VENCEU O POTE!`,
-        `🏆 ${primaryWinner.handName || "Maior Mão"} (+${primaryWinner.amount} fichas)`
+        `${primaryWinner.handName || "Maior Mão"} (+${primaryWinner.amount} fichas)`
       );
     }
 
@@ -2377,7 +2561,7 @@ export class MaFamaApp {
     this.renderSubmundoTable();
 
     if (this.submundoRun.state === "ROUND_WON") {
-      this.showWinnerPointer("south", "META DA RODADA BATIDA!", `+${res.chipsEarned} PONTOS! Loja Liberada 🛍️`);
+      this.showWinnerPointer("south", "META DA RODADA BATIDA!", `+${res.chipsEarned} PONTOS! Loja Liberada!`);
       this.audio.playVictoryChime();
       setTimeout(() => {
         this.hideWinnerPointer();
@@ -2415,7 +2599,7 @@ export class MaFamaApp {
 
         const imgTag = entry.type === "joker"
           ? `<img src="${entry.item.image}" alt="${entry.item.name}">`
-          : `<div style="width: 80px; height: 110px; background: #245247; border: 1.5px solid var(--gold); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 10px;">🪐</div>`;
+          : `<div style="width: 80px; height: 110px; background: #245247; border: 1.5px solid var(--gold); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--gold-bright); margin-bottom: 10px;">${ICONS.planet}</div>`;
 
         cardBox.innerHTML = `
           ${imgTag}

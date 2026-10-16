@@ -3028,3 +3028,63 @@ body.reduced-motion *::after {
   0% { transform: scale(1); filter: brightness(1); }
   100% { transform: scale(1.1); filter: brightness(1.3); }
 }
+
+/* Ability VFX & Clean SVG Icon Polish */
+.tag-icon, .badge-svg-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+
+.tag-icon svg, .badge-svg-icon svg {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.btn-ability {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-ability:not(:disabled) {
+  animation: abilityReadyPulse 2s infinite ease-in-out;
+}
+
+@keyframes abilityReadyPulse {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(216, 173, 102, 0.35);
+    border-color: rgba(216, 173, 102, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 22px rgba(216, 173, 102, 0.85);
+    border-color: var(--gold-bright);
+    transform: translateY(-2px);
+  }
+}
+
+.intimidation-shake {
+  animation: intimidationShakeAnim 0.7s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes intimidationShakeAnim {
+  10%, 90% { transform: translate3d(-3px, 0, 0); }
+  20%, 80% { transform: translate3d(5px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-7px, 0, 0); }
+  40%, 60% { transform: translate3d(7px, 0, 0); }
+}
+
+.mini-card-revealed {
+  animation: spyCardPulse 1.2s infinite alternate ease-in-out;
+}
+
+@keyframes spyCardPulse {
+  0% { transform: scale(1); filter: brightness(1); }
+  100% { transform: scale(1.15); filter: brightness(1.35); }
+}
+
+.pixel-swap-btn:hover {
+  background: var(--gold) !important;
+  color: #000 !important;
+  font-weight: 700;
+}
+

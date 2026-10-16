@@ -15,7 +15,7 @@ export class AbilityManager {
   }
 
   isAbilityEnabled() {
-    return this.mode === "truco_ma_fama" || this.mode === "sueca_ma_fama" || this.mode === "ma_fama";
+    return this.mode === "truco_ma_fama" || this.mode === "sueca_ma_fama" || this.mode === "ma_fama" || this.mode.includes("ma_fama");
   }
 
   canUsePlayerAbility(characterId, timingContext) {
@@ -31,13 +31,12 @@ export class AbilityManager {
         return timingContext.trickIndex < 3;
 
       case "calibre":
-        // 1x per match: during raise decision or start of trick
-        if (this.calibreMatchPowerUsed) return false;
-        return true;
+        // 1x per match or per hand: intimidation
+        return timingContext.trickIndex < 3;
 
       case "pixel":
-        // Before 1st trick only
-        return timingContext.trickIndex === 0 && timingContext.trickCardsCount === 0;
+        // 1x per hand: can swap card in hand
+        return timingContext.trickIndex < 3;
 
       default:
         return false;
@@ -49,6 +48,11 @@ export class AbilityManager {
     if (!opponentHand || opponentHand.length === 0) return null;
     const randIdx = Math.floor(Math.random() * opponentHand.length);
     return opponentHand[randIdx];
+  }
+
+  // Backward compatibility alias for Trampa
+  executeLeituraFria(opponentHand) {
+    return this.executeCartaMarcada(opponentHand);
   }
 
   // Veneno: Dossiê
@@ -83,6 +87,34 @@ export class AbilityManager {
       success: true,
       sentCard: myOldCard,
       receivedCard: partnerCard
+    };
+  }
+
+  // Pixel: Plano B Deck Swap (Replaces 1 chosen card in hand with fresh card from deck)
+  executePlanoBDeckSwap(myHand, myCardIndex, deck) {
+    if (myCardIndex < 0 || myCardIndex >= myHand.length) return null;
+    const oldCard = myHand[myCardIndex];
+    let newCard = null;
+    if (deck && deck.length > 0) {
+      newCard = deck.pop();
+    } else {
+      // Fallback generator from standard ranks/suits if deck was fully dealt
+      const ranks = ["4", "5", "6", "7", "q", "j", "k", "a", "2", "3"];
+      const suits = ["clubs", "hearts", "spades", "diamonds"];
+      const rRank = ranks[Math.floor(Math.random() * ranks.length)];
+      const rSuit = suits[Math.floor(Math.random() * suits.length)];
+      newCard = {
+        id: `${rRank}_${rSuit}`,
+        rank: rRank,
+        suit: rSuit,
+        faceAsset: `assets/cards/${rRank}_${rSuit}.svg`
+      };
+    }
+    myHand[myCardIndex] = newCard;
+    return {
+      success: true,
+      oldCard,
+      newCard
     };
   }
 
