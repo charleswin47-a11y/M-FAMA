@@ -352,6 +352,9 @@ function resolveTrick(room) {
     if (isTeamA) room.teamAPoints += trickPoints;
     else room.teamBPoints += trickPoints;
 
+    room.lastTrickWinningCard = winningEntry.card.id;
+    room.lastTrickWinnerSeat = ["south", "west", "north", "east"][winningEntry.playerIndex];
+    room.lastTrickWinnerName = winningEntry.playerName;
     room.announcement = `${winningEntry.playerName} levou a vaza (+${trickPoints} pts)!`;
     room.turnPlayerIndex = winningEntry.playerIndex;
     room.turnPlayerId = winningEntry.playerId;
@@ -379,12 +382,16 @@ function resolveTrick(room) {
     if (isTie) {
       room.trickWinners.push("tie");
       room.lastTrickWinner = "Empate (Canga)";
+      room.lastTrickWinnerSeat = null;
+      room.lastTrickWinningCard = null;
       room.announcement = "Vaza empatada (cangou)!";
       // On tie, starter of previous trick remains or rotates
     } else {
       const isTeamA = winningEntry.playerIndex % 2 === 0;
       room.trickWinners.push(isTeamA ? "teamA" : "teamB");
       room.lastTrickWinner = winningEntry.playerName;
+      room.lastTrickWinnerSeat = ["south", "west", "north", "east"][winningEntry.playerIndex];
+      room.lastTrickWinningCard = winningEntry.card.id;
       room.announcement = `${winningEntry.playerName} fez a vaza!`;
       room.turnPlayerIndex = winningEntry.playerIndex;
       room.turnPlayerId = winningEntry.playerId;
@@ -394,7 +401,7 @@ function resolveTrick(room) {
   room.status = "TRICK_RESOLVED";
   broadcastRoom(room);
 
-  // Clear trick and evaluate next step
+  // Clear trick and evaluate next step (900ms gives crisp, fluid feedback)
   setTimeout(() => {
     room.tableCards = [];
     room.leadSuit = null;
@@ -418,7 +425,7 @@ function resolveTrick(room) {
         triggerBotTurnIfNeeded(room);
       }
     }
-  }, 1400);
+  }, 900);
 }
 
 function checkTrucoHandStatus(winners) {

@@ -30,13 +30,33 @@ export class HandEvaluator {
 
     const isFlush = sorted.length >= 5 && suits.every(s => s === suits[0]);
 
-    // Check straight (including A-2-3-4-5 wheel)
+    // Check straight (supporting both standard and 40-card Brazilian baralho)
     let isStraight = false;
     let straightHigh = 0;
     if (sorted.length >= 5) {
       const uniqueVals = [...new Set(values)];
       if (uniqueVals.length >= 5) {
-        if (
+        // Consecutive sequences in 40-card baralho (A-K-Q-J-7-6-5-4-3-2)
+        const baralhoStraights = [
+          [14, 13, 12, 11, 7], // Royal / Ace High
+          [13, 12, 11, 7, 6],
+          [12, 11, 7, 6, 5],
+          [11, 7, 6, 5, 4],
+          [7, 6, 5, 4, 3],
+          [6, 5, 4, 3, 2],
+          [14, 5, 4, 3, 2]    // Wheel
+        ];
+
+        for (const seq of baralhoStraights) {
+          if (seq.every(val => uniqueVals.includes(val))) {
+            isStraight = true;
+            straightHigh = seq[0];
+            break;
+          }
+        }
+
+        // Standard consecutive numbers fallback
+        if (!isStraight &&
           uniqueVals[0] - uniqueVals[1] === 1 &&
           uniqueVals[1] - uniqueVals[2] === 1 &&
           uniqueVals[2] - uniqueVals[3] === 1 &&
@@ -44,15 +64,6 @@ export class HandEvaluator {
         ) {
           isStraight = true;
           straightHigh = uniqueVals[0];
-        } else if (
-          uniqueVals.includes(14) &&
-          uniqueVals.includes(2) &&
-          uniqueVals.includes(3) &&
-          uniqueVals.includes(4) &&
-          uniqueVals.includes(5)
-        ) {
-          isStraight = true;
-          straightHigh = 5; // Wheel straight high is 5
         }
       }
     }
@@ -68,7 +79,7 @@ export class HandEvaluator {
 
     // 1. Royal / Straight Flush
     if (isFlush && isStraight) {
-      if (straightHigh === 14 && sorted.some(c => c.pokerValue === 10)) {
+      if (straightHigh === 14 && (sorted.some(c => c.pokerValue === 10) || sorted.some(c => c.pokerValue === 7))) {
         return { type: HAND_TYPES.ROYAL_FLUSH, tieBreakers: [14], scoringCards: sorted };
       }
       return { type: HAND_TYPES.STRAIGHT_FLUSH, tieBreakers: [straightHigh], scoringCards: sorted };

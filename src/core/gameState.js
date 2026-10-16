@@ -162,6 +162,8 @@ export class GameState {
 
     this.logEvent(`Vaza ${this.currentTrick + 1} resolvida: ${winnerName}!`, trickResult.isTie ? "tie" : "win");
 
+    this.lastTrickResult = { ...trickResult, cards: [...this.tableCards] };
+
     // Check if hand is concluded
     const handStatus = resolveHandStatus(this.trickWinners);
     if (handStatus.finished) {
@@ -169,12 +171,16 @@ export class GameState {
       this.finishHand(handStatus.winner, handStatus.reason);
       return { trickResult, handStatus };
     } else {
-      // Advance to next trick
+      // Advance to next trick (cards stay on table until UI clearTrickCards is called)
       this.currentTrick++;
-      this.tableCards = [];
       this.state = "PLAYING";
       return { trickResult, handStatus };
     }
+  }
+
+  // Clear cards from table after winning presentation
+  clearTrickCards() {
+    this.tableCards = [];
   }
 
   // Finish hand and award points

@@ -18,16 +18,16 @@ function assert(condition, message) {
 
 console.log("=== RUNNING POKER & SUBMUNDO CORE TESTS ===");
 
-// 1. Deck Factory
-const deck52 = DeckFactory.createDeck("poker_tradicional");
-assert(deck52.length === 52, `Deck 52 should have 52 cards, got ${deck52.length}`);
-const uniqueIds = new Set(deck52.map(c => c.id));
-assert(uniqueIds.size === 52, `All 52 card IDs must be unique`);
+// 1. Deck Factory (Official 40-card Baralho of MÁ FAMA)
+const deck40 = DeckFactory.createDeck("poker_tradicional");
+assert(deck40.length === 40, `Deck should have 40 authentic cards, got ${deck40.length}`);
+const uniqueIds = new Set(deck40.map(c => c.id));
+assert(uniqueIds.size === 40, `All 40 card IDs must be unique`);
 
 // 2. Hand Evaluator Tests
-// Royal Flush
+// Royal Flush (A-K-Q-J-7 suited in 40-card baralho)
 const royalCards = [
-  { rank: "10", pokerValue: 10, suit: "hearts" },
+  { rank: "7", pokerValue: 7, suit: "hearts" },
   { rank: "j", pokerValue: 11, suit: "hearts" },
   { rank: "q", pokerValue: 12, suit: "hearts" },
   { rank: "k", pokerValue: 13, suit: "hearts" },
@@ -40,8 +40,8 @@ assert(royalEval.type.name === "Royal Flush", `Expected Royal Flush, got ${royal
 const twoPairCards = [
   { rank: "k", pokerValue: 13, suit: "clubs" },
   { rank: "k", pokerValue: 13, suit: "diamonds" },
-  { rank: "9", pokerValue: 9, suit: "spades" },
-  { rank: "9", pokerValue: 9, suit: "hearts" },
+  { rank: "7", pokerValue: 7, suit: "spades" },
+  { rank: "7", pokerValue: 7, suit: "hearts" },
   { rank: "4", pokerValue: 4, suit: "clubs" }
 ];
 const twoPairEval = HandEvaluator.evaluate5Cards(twoPairCards);

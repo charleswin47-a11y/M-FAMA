@@ -61,7 +61,7 @@ export class MaFamaApp {
     this.matchTypeBot = document.getElementById("match-type-bot");
     this.matchTypeOnline = document.getElementById("match-type-online");
     this.matchTypePvp = document.getElementById("match-type-pvp");
-    
+
     // Modes (6 Official Game Modes)
     this.modeTrucoPaulista = document.getElementById("mode-truco-paulista");
     this.modeTrucoMaFama = document.getElementById("mode-truco-ma-fama");
@@ -165,7 +165,7 @@ export class MaFamaApp {
     this.submundoMoneyVal = document.getElementById("submundo-money-val");
     this.submundoJokersTray = document.getElementById("submundo-jokers-tray");
     this.jokersSlotsContainer = document.getElementById("jokers-slots-container");
-    
+
     this.viraContainer = document.getElementById("vira-container");
     this.pokerCommunityZone = document.getElementById("poker-community-zone");
     this.pokerStageTag = document.getElementById("poker-stage-tag");
@@ -198,6 +198,13 @@ export class MaFamaApp {
     this.chipsWest = document.getElementById("chips-west");
     this.chipsNorth = document.getElementById("chips-north");
     this.chipsEast = document.getElementById("chips-east");
+
+    // Winner Pointer & Trick Highlight Overlay
+    this.winnerPointerOverlay = document.getElementById("table-winner-pointer-overlay");
+    this.winnerArrowGlyph = document.getElementById("pointer-arrow-glyph");
+    this.winnerBannerTitle = document.getElementById("winner-banner-title");
+    this.winnerBannerSub = document.getElementById("winner-banner-sub");
+    this.winnerCrownIcon = document.getElementById("winner-crown-icon");
 
     // Modals
     this.challengeModal = document.getElementById("challenge-modal");
@@ -235,6 +242,52 @@ export class MaFamaApp {
     this.btnToggleLog = document.getElementById("btn-toggle-log");
     this.drawerLog = document.getElementById("drawer-log");
     this.btnCloseLog = document.getElementById("btn-close-log");
+  }
+
+  showWinnerPointer(targetSeat, title, subtitle = "") {
+    if (!this.winnerPointerOverlay) return;
+
+    // Reset previous seat glows
+    document.querySelectorAll(".seat-avatar-wrap, .player-identity-panel").forEach(el => {
+      el.classList.remove("seat-winner-glow");
+    });
+
+    this.winnerPointerOverlay.className = "table-winner-pointer-overlay active";
+
+    if (targetSeat === "south" || targetSeat === "player") {
+      this.winnerPointerOverlay.classList.add("point-south");
+      if (this.winnerArrowGlyph) this.winnerArrowGlyph.textContent = "⬇️";
+      if (this.playerIdentityPanel) this.playerIdentityPanel.classList.add("seat-winner-glow");
+    } else if (targetSeat === "north" || targetSeat === "bot") {
+      this.winnerPointerOverlay.classList.add("point-north");
+      if (this.winnerArrowGlyph) this.winnerArrowGlyph.textContent = "⬆️";
+      const wrapNorth = document.getElementById("wrap-north");
+      if (wrapNorth) wrapNorth.classList.add("seat-winner-glow");
+    } else if (targetSeat === "west") {
+      this.winnerPointerOverlay.classList.add("point-west");
+      if (this.winnerArrowGlyph) this.winnerArrowGlyph.textContent = "⬅️";
+      const wrapWest = document.getElementById("wrap-west");
+      if (wrapWest) wrapWest.classList.add("seat-winner-glow");
+    } else if (targetSeat === "east") {
+      this.winnerPointerOverlay.classList.add("point-east");
+      if (this.winnerArrowGlyph) this.winnerArrowGlyph.textContent = "➡️";
+      const wrapEast = document.getElementById("wrap-east");
+      if (wrapEast) wrapEast.classList.add("seat-winner-glow");
+    } else {
+      if (this.winnerArrowGlyph) this.winnerArrowGlyph.textContent = "⚔️";
+    }
+
+    if (this.winnerBannerTitle) this.winnerBannerTitle.textContent = title;
+    if (this.winnerBannerSub) this.winnerBannerSub.textContent = subtitle;
+  }
+
+  hideWinnerPointer() {
+    if (this.winnerPointerOverlay) {
+      this.winnerPointerOverlay.classList.remove("active", "point-south", "point-north", "point-west", "point-east");
+    }
+    document.querySelectorAll(".seat-avatar-wrap, .player-identity-panel").forEach(el => {
+      el.classList.remove("seat-winner-glow");
+    });
   }
 
   setupEventListeners() {
@@ -696,7 +749,7 @@ export class MaFamaApp {
     // Visual avatars (South: You)
     if (this.playerAvatar) this.playerAvatar.src = this.selectedPlayerChar.avatar;
     if (this.playerName) this.playerName.textContent = this.selectedPlayerChar.name;
-    
+
     // Partner (North: Calibre or other)
     const partnerChar = CHARACTERS.find(c => c.id !== this.selectedPlayerChar.id && c.id !== this.selectedOpponentChar.id) || CHARACTERS[2];
     if (this.avatarNorth) this.avatarNorth.src = partnerChar.avatar;
@@ -907,10 +960,10 @@ export class MaFamaApp {
     this.updateTableUI();
 
     if (this.gameState.state === "TRICK_RESOLVE") {
-      setTimeout(() => this.handleResolveTrick(), 1000);
+      setTimeout(() => this.handleResolveTrick(), 350);
     } else if (this.gameState.turnPlayer === "bot") {
       if (this.matchType === "bot") {
-        setTimeout(() => this.executeBotTurn(), 800);
+        setTimeout(() => this.executeBotTurn(), 350);
       } else {
         // Friend 2P mode: show privacy curtain for player 2
         this.showTurnPassCurtain(this.selectedOpponentChar.name);
@@ -962,7 +1015,7 @@ export class MaFamaApp {
     this.updateTableUI();
 
     if (this.gameState.state === "TRICK_RESOLVE") {
-      setTimeout(() => this.handleResolveTrick(), 1000);
+      setTimeout(() => this.handleResolveTrick(), 350);
     }
   }
 
@@ -971,33 +1024,59 @@ export class MaFamaApp {
     const outcome = this.gameState.resolveCurrentTrick();
     if (!outcome) return;
 
-    if (outcome.trickResult.winner === "player") {
-      this.audio.playTrickWin();
-    } else if (outcome.trickResult.winner === "bot") {
-      this.audio.playChips();
-    }
-    this.audio.playTrickSweep();
+    const winner = outcome.trickResult.winner;
+    const winCard = outcome.trickResult.winningCard;
 
-    this.updateTableUI();
-
-    // Hand finished?
-    if (outcome.handStatus.finished) {
-      setTimeout(() => {
-        this.gameState.startNewHand();
-        this.audio.playCardDeal();
-        this.audio.playViraReveal();
-        this.audio.switchMusicTrack("table_normal");
-        this.updateTableUI();
-
-        if (this.matchType === "bot" && this.gameState.turnPlayer === "bot" && this.gameState.state === "PLAYING") {
-          setTimeout(() => this.executeBotTurn(), 1000);
+    // Highlight winning card in the center trick zone
+    if (winCard && this.trickZone) {
+      const cardFrames = this.trickZone.querySelectorAll(".card-frame");
+      this.gameState.tableCards.forEach((tc, idx) => {
+        if (tc.card.id === winCard.id && cardFrames[idx]) {
+          cardFrames[idx].classList.add("winner-highlight");
         }
-      }, 1600);
-    } else {
-      if (this.matchType === "bot" && this.gameState.turnPlayer === "bot") {
-        setTimeout(() => this.executeBotTurn(), 900);
-      }
+      });
     }
+
+    // Directional winner pointer banner
+    if (winner === "player") {
+      this.audio.playTrickWin();
+      const cardDesc = winCard ? `${winCard.rank.toUpperCase()} de ${winCard.suitName}` : "Maior Carta";
+      this.showWinnerPointer("south", "VOCÊ FEZ A VAZA!", cardDesc);
+    } else if (winner === "bot") {
+      this.audio.playChips();
+      const botName = this.selectedOpponentChar?.name || "Oponente";
+      const cardDesc = winCard ? `${winCard.rank.toUpperCase()} de ${winCard.suitName}` : "Maior Carta";
+      this.showWinnerPointer("north", `${botName.toUpperCase()} FEZ A VAZA!`, cardDesc);
+    } else {
+      this.showWinnerPointer("center", "EMPATE! A VAZA CANGOU!", "Nenhum ponto concedido nesta disputa");
+    }
+
+    // Show winner pointer & highlighted card for 850ms, then clear smoothly
+    setTimeout(() => {
+      this.hideWinnerPointer();
+      this.audio.playTrickSweep();
+      this.gameState.clearTrickCards();
+      this.updateTableUI();
+
+      // Hand finished?
+      if (outcome.handStatus.finished) {
+        setTimeout(() => {
+          this.gameState.startNewHand();
+          this.audio.playCardDeal();
+          this.audio.playViraReveal();
+          this.audio.switchMusicTrack("table_normal");
+          this.updateTableUI();
+
+          if (this.matchType === "bot" && this.gameState.turnPlayer === "bot" && this.gameState.state === "PLAYING") {
+            setTimeout(() => this.executeBotTurn(), 350);
+          }
+        }, 850);
+      } else {
+        if (this.matchType === "bot" && this.gameState.turnPlayer === "bot") {
+          setTimeout(() => this.executeBotTurn(), 350);
+        }
+      }
+    }, 850);
   }
 
   // Propose Truco
@@ -1618,8 +1697,9 @@ export class MaFamaApp {
         label.className = "slot-label";
         label.textContent = tc.playerName;
 
+        const isWinningCard = room.status === "TRICK_RESOLVED" && room.lastTrickWinningCard === tc.card.id;
         const cardFrame = document.createElement("div");
-        cardFrame.className = "card-frame";
+        cardFrame.className = `card-frame ${isWinningCard ? "winner-highlight" : ""}`;
         const rot = (idx % 2 === 0 ? -3 : 3) * (idx + 1);
         cardFrame.style.setProperty("--play-rot", `${rot}deg`);
 
@@ -1631,6 +1711,27 @@ export class MaFamaApp {
         slot.appendChild(cardFrame);
         this.trickZone.appendChild(slot);
       });
+    }
+
+    // Directional winner pointer for trick resolved in room
+    if (room.status === "TRICK_RESOLVED") {
+      let relativeSeat = "south";
+      const winnerP = room.players.find(p => p.name === room.lastTrickWinner);
+      if (winnerP) {
+        const wIdx = room.players.indexOf(winnerP);
+        const relDiff = (wIdx - meIdx + 4) % 4;
+        relativeSeat = ["south", "west", "north", "east"][relDiff];
+      } else if (room.lastTrickWinnerSeat) {
+        relativeSeat = room.lastTrickWinnerSeat;
+      }
+      if (room.lastTrickWinner === "Empate (Canga)") {
+        this.showWinnerPointer("center", "EMPATE (CANGA)!", "Nenhum ponto nesta disputa");
+      } else {
+        const winTitle = relativeSeat === "south" ? "VOCÊ FEZ A VAZA!" : `${(room.lastTrickWinner || "Oponente").toUpperCase()} FEZ A VAZA!`;
+        this.showWinnerPointer(relativeSeat, winTitle, "Maior carta na mesa");
+      }
+    } else if (room.status === "PLAYING") {
+      this.hideWinnerPointer();
     }
 
     // Render My Hand Cards (Sul)
@@ -1821,6 +1922,8 @@ export class MaFamaApp {
 
   // Reset all mode-specific HUDs and overlays back to clean state
   resetTableModeViews() {
+    this.hideWinnerPointer();
+    if (this.playerHandContainer) this.playerHandContainer.classList.remove("sueca-hand");
     if (this.pokerCommunityZone) this.pokerCommunityZone.style.display = "none";
     if (this.pokerActionsBar) this.pokerActionsBar.style.display = "none";
     if (this.submundoHudPanel) this.submundoHudPanel.style.display = "none";
@@ -1873,6 +1976,12 @@ export class MaFamaApp {
 
   dealPokerHand() {
     if (!this.pokerGame) return;
+    this.hideWinnerPointer();
+    this.pokerGame.communityCards.forEach(c => delete c.isWinningCard);
+    Object.values(this.pokerGame.players).forEach(p => {
+      p.holeCards.forEach(c => delete c.isWinningCard);
+    });
+
     this.pokerGame.startHand();
     this.audio.playCardDeal();
     this.audio.playChips();
@@ -1893,11 +2002,20 @@ export class MaFamaApp {
     if (this.pokerBoardCards) {
       this.pokerBoardCards.innerHTML = "";
       this.pokerGame.communityCards.forEach(c => {
-        const cardImg = document.createElement("img");
-        cardImg.className = "poker-board-card";
-        cardImg.src = c.faceAsset;
-        cardImg.alt = `${c.rank} de ${c.suitName}`;
-        this.pokerBoardCards.appendChild(cardImg);
+        const slot = document.createElement("div");
+        slot.className = "played-slot";
+
+        const cardFrame = document.createElement("div");
+        cardFrame.className = `card-frame ${c.isWinningCard ? "winner-highlight" : ""}`;
+        cardFrame.dataset.cardId = c.id;
+
+        const img = document.createElement("img");
+        img.src = c.faceAsset;
+        img.alt = `${c.rank} de ${c.suitName}`;
+        cardFrame.appendChild(img);
+
+        slot.appendChild(cardFrame);
+        this.pokerBoardCards.appendChild(slot);
       });
     }
   }
@@ -1907,10 +2025,30 @@ export class MaFamaApp {
     const southPlayer = this.pokerGame.players.south;
     if (this.playerHandContainer) {
       this.playerHandContainer.innerHTML = "";
-      southPlayer.holeCards.forEach(card => {
+      this.playerHandContainer.classList.remove("sueca-hand");
+      const count = southPlayer.holeCards.length;
+      southPlayer.holeCards.forEach((card, idx) => {
         const wrap = document.createElement("div");
-        wrap.className = `hand-card-wrapper ${southPlayer.folded ? "card-disabled" : ""}`;
-        wrap.innerHTML = `<img src="${card.faceAsset}" alt="${card.rank} de ${card.suitName}">`;
+        const offset = idx - (count - 1) / 2;
+        const rot = offset * 5;
+        const vert = Math.abs(offset) * 3;
+        wrap.className = `hand-card-wrapper ${southPlayer.folded ? "disabled" : ""}`;
+        wrap.style.transform = `rotate(${rot}deg) translateY(${vert}px)`;
+
+        const cardFrame = document.createElement("div");
+        cardFrame.className = `card-frame ${card.isWinningCard ? "winner-highlight" : ""}`;
+        cardFrame.dataset.cardId = card.id;
+
+        const img = document.createElement("img");
+        img.src = card.faceAsset;
+        img.alt = `${card.rank} de ${card.suitName}`;
+        cardFrame.appendChild(img);
+        wrap.appendChild(cardFrame);
+
+        wrap.addEventListener("mouseenter", () => {
+          this.audio.playCardSelect();
+        });
+
         this.playerHandContainer.appendChild(wrap);
       });
     }
@@ -1926,7 +2064,10 @@ export class MaFamaApp {
         const mini = document.createElement("div");
         mini.className = "mini-card-back";
         if (showdown) {
-          mini.innerHTML = `<img src="${c.faceAsset}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">`;
+          mini.innerHTML = `<img src="${c.faceAsset}" style="width: 100%; height: 100%; object-fit: contain; border-radius: 4px;">`;
+          if (c.isWinningCard) mini.classList.add("winner-highlight");
+        } else {
+          mini.innerHTML = `<img src="${c.backAsset}" style="width: 100%; height: 100%; object-fit: contain; border-radius: 4px;">`;
         }
         el.appendChild(mini);
       });
@@ -2014,27 +2155,56 @@ export class MaFamaApp {
       } else {
         this.updatePokerHUD();
       }
-    }, 850);
+    }, 350);
   }
 
   finishPokerRound() {
+    const winInfo = this.pokerGame.winnerInfo;
+    const primaryWinner = winInfo && winInfo.winners && winInfo.winners[0];
+
+    // Highlight winning cards on board and hole cards
+    if (primaryWinner && primaryWinner.bestHand && primaryWinner.bestHand.scoringCards) {
+      const winCardIds = new Set(primaryWinner.bestHand.scoringCards.map(c => c.id));
+      this.pokerGame.communityCards.forEach(c => {
+        if (winCardIds.has(c.id)) c.isWinningCard = true;
+      });
+      const p = this.pokerGame.players[primaryWinner.id];
+      if (p) {
+        p.holeCards.forEach(c => {
+          if (winCardIds.has(c.id)) c.isWinningCard = true;
+        });
+      }
+    }
+
     this.renderPokerBoard();
     this.renderPokerHands(true);
     this.updatePokerHUD();
 
-    const winInfo = this.pokerGame.winnerInfo;
-    const winnerNames = winInfo && winInfo.winners ? winInfo.winners.map(w => `${w.id.toUpperCase()} (+${w.amount} fichas - ${w.handName})`).join(", ") : "Vencedor";
+    let winnerName = "Você";
+    if (primaryWinner) {
+      if (primaryWinner.id === "south") winnerName = this.selectedPlayerChar?.name || "Você";
+      else if (primaryWinner.id === "west") winnerName = this.nameWest?.textContent || "Veneno";
+      else if (primaryWinner.id === "north") winnerName = this.nameNorth?.textContent || "Calibre";
+      else if (primaryWinner.id === "east") winnerName = this.nameEast?.textContent || "Pixel";
+
+      this.showWinnerPointer(
+        primaryWinner.id,
+        `${winnerName.toUpperCase()} VENCEU O POTE!`,
+        `🏆 ${primaryWinner.handName || "Maior Mão"} (+${primaryWinner.amount} fichas)`
+      );
+    }
 
     if (this.playerTurnStatus) {
-      this.playerTurnStatus.textContent = `Vencedor: ${winnerNames}`;
+      this.playerTurnStatus.textContent = primaryWinner ? `Vencedor: ${winnerName} (${primaryWinner.handName})` : "Mão Finalizada";
     }
     this.audio.playVictoryChime();
 
     setTimeout(() => {
+      this.hideWinnerPointer();
       if (this.selectedRuleset === "poker_tradicional" && this.tableScreen.classList.contains("active")) {
         this.dealPokerHand();
       }
-    }, 4500);
+    }, 2200);
   }
 
   // =========================================================================
@@ -2102,18 +2272,33 @@ export class MaFamaApp {
       }
     }
 
-    // Render 8 Hand Cards
+    // Render 8 Hand Cards in Organic Fan with Authentic Card Frames
     if (this.playerHandContainer) {
       this.playerHandContainer.innerHTML = "";
+      this.playerHandContainer.classList.add("sueca-hand");
+      const count = run.hand.length;
       run.hand.forEach((card, idx) => {
         const wrap = document.createElement("div");
         const isSelected = this.submundoSelectedCardIndices.has(idx);
-        wrap.className = `hand-card-wrapper ${isSelected ? "selected" : ""}`;
-        if (isSelected) {
-          wrap.style.transform = "translateY(-16px)";
-          wrap.style.boxShadow = "0 8px 24px rgba(240, 214, 154, 0.4)";
-        }
-        wrap.innerHTML = `<img src="${card.faceAsset}" alt="${card.rank} de ${card.suitName}">`;
+        const offset = idx - (count - 1) / 2;
+        const rot = offset * 2.8;
+        const vert = Math.abs(offset) * 2;
+        wrap.className = `hand-card-wrapper ${isSelected ? "selected advised-highlight" : ""}`;
+        wrap.style.transform = isSelected
+          ? `translateY(-22px) scale(1.06) rotate(${rot}deg)`
+          : `rotate(${rot}deg) translateY(${vert}px)`;
+
+        const cardFrame = document.createElement("div");
+        cardFrame.className = `card-frame ${isSelected ? "winner-highlight" : ""}`;
+        const img = document.createElement("img");
+        img.src = card.faceAsset;
+        img.alt = `${card.rank} de ${card.suitName}`;
+        cardFrame.appendChild(img);
+        wrap.appendChild(cardFrame);
+
+        wrap.addEventListener("mouseenter", () => {
+          this.audio.playCardSelect();
+        });
         wrap.addEventListener("click", () => this.toggleSubmundoCardSelection(idx));
         this.playerHandContainer.appendChild(wrap);
       });
@@ -2173,8 +2358,12 @@ export class MaFamaApp {
     this.renderSubmundoTable();
 
     if (this.submundoRun.state === "ROUND_WON") {
+      this.showWinnerPointer("south", "META DA RODADA BATIDA!", `+${res.chipsEarned} PONTOS! Loja Liberada 🛍️`);
       this.audio.playVictoryChime();
-      setTimeout(() => this.openSubmundoShop(), 1200);
+      setTimeout(() => {
+        this.hideWinnerPointer();
+        this.openSubmundoShop();
+      }, 1400);
     } else if (this.submundoRun.state === "GAME_OVER") {
       alert(`FIM DA RUN! Você acumulou ${this.submundoRun.currentScore} pontos no Ante ${this.submundoRun.ante}.`);
       this.startPokerSubmundoMatch();
