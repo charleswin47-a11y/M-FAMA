@@ -654,16 +654,35 @@ export class MaFamaApp {
     if (!this.charCarousel) return;
     this.charCarousel.innerHTML = "";
 
+    const specialtyIcons = {
+      trampa: "♟️",
+      veneno: "🥀",
+      calibre: "🔫",
+      pixel: "🃏"
+    };
+
     CHARACTERS.forEach(char => {
+      const isSelected = char.id === this.selectedPlayerChar.id;
       const card = document.createElement("div");
-      card.className = `char-card-item ${char.id === this.selectedPlayerChar.id ? "selected" : ""}`;
+      card.className = `char-card-item ${isSelected ? "selected" : ""} char-theme-${char.id}`;
       card.innerHTML = `
-        <button class="char-inspect-btn" title="Ler Ficha e Poderes">${ICONS.eye}</button>
-        <span class="char-card-selected-tag">SELECIONADO</span>
-        <img src="${char.portrait}" alt="${char.name}">
+        <button class="char-inspect-btn" title="Ver Dossiê e Poderes">
+          ${ICONS.eye}
+          <span class="inspect-text">FICHA</span>
+        </button>
+        <span class="char-card-selected-tag">✓ SELECIONADO</span>
+        <div class="char-img-wrap">
+          <img src="${char.portrait}" alt="${char.name}">
+        </div>
         <div class="char-card-footer">
-          <span class="name">${char.name}</span>
-          <span class="sub">${char.subtitle}</span>
+          <div class="char-footer-top">
+            <span class="name">${char.name}</span>
+            <span class="char-badge-pill">${specialtyIcons[char.id] || "✦"} ${char.subtitle}</span>
+          </div>
+          <div class="char-power-row">
+            <span class="power-prefix">PODER:</span>
+            <span class="power-title">${char.mainPowerName}</span>
+          </div>
         </div>
       `;
 
@@ -677,7 +696,7 @@ export class MaFamaApp {
         this.audio.playChips();
       });
 
-      // Click eye to inspect dossier
+      // Click inspect button to inspect dossier
       const inspectBtn = card.querySelector(".char-inspect-btn");
       inspectBtn.addEventListener("click", (e) => {
         e.stopPropagation();
