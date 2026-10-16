@@ -32,9 +32,13 @@
   --font-serif: 'Cormorant Garamond', serif;
   --font-ui: 'Inter', sans-serif;
 
-  /* Dimensions */
-  --card-w: 120px;
-  --card-h: 172px;
+  /* Dimensions & Safe Area */
+  --card-w: clamp(72px, 10vw, 120px);
+  --card-h: clamp(103px, 14.3vw, 172px);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
 }
 
 * {
@@ -42,6 +46,8 @@
   padding: 0;
   box-sizing: border-box;
   user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -50,6 +56,7 @@ body {
   font-family: var(--font-ui);
   overflow: hidden;
   height: 100vh;
+  height: 100dvh;
   width: 100vw;
   display: flex;
   align-items: center;
@@ -1749,9 +1756,10 @@ body {
   background: var(--bg-panel-solid);
   border: 2px solid var(--gold);
   border-radius: 14px;
-  padding: 30px;
-  width: 780px;
-  max-height: 85vh;
+  padding: 24px;
+  width: min(94vw, 780px);
+  max-width: 780px;
+  max-height: 88vh;
   overflow-y: auto;
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95);
 }
@@ -1813,9 +1821,10 @@ body {
   background: var(--bg-panel-solid);
   border: 2px solid var(--gold-bright);
   border-radius: 16px;
-  padding: 40px;
+  padding: 30px 24px;
   text-align: center;
-  width: 500px;
+  width: min(92vw, 500px);
+  max-width: 500px;
   box-shadow: 0 0 60px rgba(216, 173, 102, 0.5);
 }
 
@@ -3087,4 +3096,856 @@ body.reduced-motion *::after {
   color: #000 !important;
   font-weight: 700;
 }
+
+/* ==========================================================================
+   RESPONSIVE DESIGN SYSTEM (MOBILE, TABLET, DESKTOP & LANDSCAPE)
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. TABLET BREAKPOINT (601px to 1024px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  #game-container {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+    max-width: 100vw;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  /* Lobby on Tablet */
+  .menu-content {
+    grid-template-columns: 220px 1fr;
+    padding: 16px 22px;
+    gap: 14px;
+    height: 100%;
+  }
+
+  .room-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .characters-carousel {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .char-card-item {
+    height: 220px;
+  }
+
+  .char-card-footer {
+    padding: 8px 10px;
+  }
+
+  .brand-logo-img {
+    height: 52px;
+  }
+
+  /* Game Table on Tablet */
+  :root {
+    --card-w: clamp(66px, 9.2vw, 98px);
+    --card-h: clamp(94px, 13.2vw, 140px);
+  }
+
+  .mahogany-table {
+    width: 94%;
+    height: 76%;
+  }
+
+  .seat-west {
+    left: 15px;
+  }
+
+  .seat-east {
+    right: 15px;
+  }
+
+  .player-bottom-area {
+    padding: 0 20px;
+    bottom: max(10px, var(--safe-bottom));
+  }
+
+  .hand-card-wrapper {
+    margin-left: -20px;
+  }
+
+  .trick-played-zone {
+    gap: 18px;
+  }
+
+  .poker-community-zone {
+    padding: 12px 18px;
+    gap: 8px;
+  }
+
+  .poker-board-cards .card-frame {
+    width: clamp(52px, 7.5vw, 75px);
+    height: clamp(74px, 10.7vw, 107px);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   2. MOBILE BREAKPOINT (<= 600px - Phones in Portrait)
+   -------------------------------------------------------------------------- */
+@media (max-width: 600px) {
+  #game-container {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 100vh;
+    min-height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+    max-width: 100vw;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: hidden;
+  }
+
+  /* --- LOBBY ON MOBILE --- */
+  .menu-content {
+    display: flex;
+    flex-direction: column;
+    padding: 12px 14px;
+    padding-top: max(10px, var(--safe-top));
+    padding-bottom: max(14px, var(--safe-bottom));
+    gap: 12px;
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .menu-header {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 2px;
+  }
+
+  .brand-logo-img {
+    height: 38px;
+    max-width: 170px;
+  }
+
+  .online-status-bar {
+    gap: 6px;
+  }
+
+  .online-avatars {
+    display: none; /* Hide multi-avatars to keep mobile header clean */
+  }
+
+  .status-tag {
+    font-size: 0.65rem;
+    padding: 3px 8px;
+  }
+
+  .player-profile-badge {
+    padding: 3px 8px 3px 4px;
+    gap: 6px;
+  }
+
+  .player-profile-badge img {
+    width: 26px;
+    height: 26px;
+  }
+
+  .player-profile-badge .p-name {
+    font-size: 0.75rem;
+  }
+
+  .player-profile-badge .p-chips {
+    font-size: 0.65rem;
+  }
+
+  .btn-open-settings {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+  }
+
+  /* Mode selection cards - single touch-friendly column */
+  .section-title {
+    font-size: 1.35rem;
+    letter-spacing: 1.5px;
+  }
+
+  .section-sub {
+    font-size: 0.75rem;
+  }
+
+  .room-actions {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .room-card {
+    min-height: 58px;
+    padding: 8px 12px;
+    border-radius: 8px;
+  }
+
+  .room-info h3 {
+    font-size: 0.98rem;
+    margin-bottom: 1px;
+  }
+
+  .room-info p {
+    font-size: 0.7rem;
+    line-height: 1.2;
+    max-width: 100%;
+  }
+
+  .card-tag {
+    font-size: 0.58rem;
+    margin-bottom: 2px;
+  }
+
+  .room-arrow {
+    width: 28px;
+    height: 28px;
+    margin-left: 6px;
+  }
+
+  /* Character selection - 2 columns on mobile */
+  .character-select-area {
+    margin-top: 2px;
+  }
+
+  .carousel-header-row {
+    margin-bottom: 6px;
+  }
+
+  .carousel-hint {
+    display: none;
+  }
+
+  .characters-carousel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .char-card-item {
+    height: 172px;
+    border-radius: 10px;
+  }
+
+  .char-card-footer {
+    padding: 6px 8px;
+  }
+
+  .char-footer-top .name {
+    font-size: 0.88rem;
+  }
+
+  .char-badge-pill {
+    font-size: 0.55rem;
+  }
+
+  .char-power-row {
+    padding: 2px 4px;
+    gap: 4px;
+    font-size: 0.62rem;
+  }
+
+  .char-inspect-btn {
+    width: 30px;
+    height: 30px;
+    top: 6px;
+    right: 6px;
+  }
+
+  .char-inspect-btn .inspect-text {
+    display: none;
+  }
+
+  /* Match type buttons & footer actions */
+  .match-type-selector {
+    display: flex;
+    width: 100%;
+    gap: 6px;
+  }
+
+  .match-type-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 10px 4px;
+    font-size: 0.78rem;
+    min-height: 44px;
+    gap: 4px;
+  }
+
+  .match-type-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .menu-footer {
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 4px;
+  }
+
+  .btn-start-game {
+    width: 100%;
+    min-height: 48px;
+    font-size: 1.15rem;
+    justify-content: center;
+  }
+
+  .btn-open-rules, .btn-run-tests {
+    flex: 1;
+    justify-content: center;
+    min-height: 40px;
+    font-size: 0.75rem;
+  }
+
+  /* --- MESA DE JOGO ON MOBILE --- */
+  :root {
+    --card-w: clamp(48px, 13vw, 72px);
+    --card-h: clamp(69px, 18.6vw, 103px);
+  }
+
+  .table-stage {
+    overflow: hidden;
+  }
+
+  /* Top HUD on Mobile */
+  .table-hud-top {
+    top: max(6px, var(--safe-top));
+    left: 8px;
+    right: 8px;
+  }
+
+  .hud-panel {
+    padding: 4px 8px;
+    gap: 8px;
+    border-radius: 8px;
+  }
+
+  .score-display {
+    gap: 8px;
+  }
+
+  .score-side .score-label {
+    font-size: 0.58rem;
+  }
+
+  .score-side .score-num {
+    font-size: 1.35rem;
+  }
+
+  .score-vs {
+    font-size: 0.7rem;
+  }
+
+  .stake-badge {
+    padding: 2px 6px;
+    font-size: 0.65rem;
+  }
+
+  .trick-dots-container {
+    gap: 4px;
+  }
+
+  .trick-dot {
+    width: 14px;
+    height: 14px;
+    font-size: 0.58rem;
+  }
+
+  .table-controls-right {
+    gap: 4px;
+  }
+
+  .btn-leave-table {
+    padding: 6px 8px;
+    font-size: 0.75rem;
+    min-height: 38px;
+  }
+
+  .btn-leave-table span {
+    display: none; /* Icon only on mobile */
+  }
+
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+    min-height: 36px;
+  }
+
+  /* Mahogany Table Base */
+  .mahogany-table {
+    width: 98%;
+    height: 80%;
+    bottom: 0;
+  }
+
+  .felt-logo-img {
+    max-width: 45%;
+    opacity: 0.08;
+  }
+
+  /* Seats: North, West, East */
+  .seat-north {
+    top: 50px;
+  }
+
+  .seat-west {
+    left: 4px;
+    top: 36%;
+  }
+
+  .seat-east {
+    right: 4px;
+    top: 36%;
+  }
+
+  .seat-avatar-wrap {
+    width: 42px;
+    height: 42px;
+  }
+
+  .seat-player-name {
+    font-size: 0.65rem;
+    max-width: 65px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .seat-status-tag {
+    font-size: 0.55rem;
+    padding: 1px 4px;
+  }
+
+  .mini-card-back {
+    width: 26px;
+    height: 38px;
+    margin-left: -13px;
+  }
+
+  .seat-hand-cards.vertical .mini-card-back {
+    margin-top: -30px;
+  }
+
+  /* Center Area: Vira, Vazas, Poker Board */
+  .center-table-zone {
+    top: 38%;
+    gap: 8px;
+  }
+
+  .vira-container .card-frame {
+    width: clamp(46px, 12vw, 64px);
+    height: clamp(66px, 17.2vw, 92px);
+  }
+
+  .vira-badge {
+    font-size: 0.62rem;
+    padding: 1px 6px;
+    margin-bottom: 3px;
+  }
+
+  .manilha-info-banner {
+    padding: 2px 6px;
+    margin-top: 4px;
+  }
+
+  .manilha-info-banner .m-label {
+    font-size: 0.55rem;
+  }
+
+  .manilha-info-banner .m-rank {
+    font-size: 0.85rem;
+  }
+
+  .manilha-info-banner .m-suits {
+    font-size: 0.62rem;
+  }
+
+  .trick-played-zone {
+    gap: 8px;
+    min-width: auto;
+    min-height: auto;
+  }
+
+  .trick-played-zone .card-frame {
+    width: clamp(50px, 13.5vw, 68px);
+    height: clamp(71px, 19.3vw, 97px);
+  }
+
+  .played-slot .slot-label {
+    font-size: 0.58rem;
+    padding: 1px 4px;
+    bottom: -14px;
+  }
+
+  /* Texas Hold'em on Mobile */
+  .poker-community-zone {
+    padding: 6px 10px;
+    gap: 5px;
+    border-radius: 10px;
+    max-width: 95vw;
+  }
+
+  .poker-stage-tag {
+    font-size: 0.7rem;
+    padding: 2px 10px;
+  }
+
+  .poker-board-cards {
+    gap: 4px;
+    min-height: 60px;
+  }
+
+  .poker-board-cards .card-frame {
+    width: clamp(38px, 9.8vw, 50px);
+    height: clamp(54px, 14vw, 72px);
+  }
+
+  .poker-pot-badge {
+    padding: 3px 10px;
+  }
+
+  .poker-pot-badge .pot-title {
+    font-size: 0.65rem;
+  }
+
+  .poker-pot-badge .pot-amount {
+    font-size: 0.95rem;
+  }
+
+  /* Submundo HUD on Mobile */
+  .submundo-hud {
+    padding: 4px 8px;
+    gap: 6px;
+    border-radius: 8px;
+  }
+
+  .sub-val {
+    font-size: 0.95rem;
+  }
+
+  .sub-blind-name {
+    font-size: 0.8rem;
+  }
+
+  .submundo-score-box {
+    min-width: 100px;
+  }
+
+  .sub-meta-nums {
+    font-size: 0.78rem;
+  }
+
+  .submundo-jokers-tray {
+    top: 52px;
+    padding: 3px 8px;
+  }
+
+  .joker-slot {
+    width: 38px;
+    height: 52px;
+  }
+
+  /* Player Bottom Area (Thumb Friendly) */
+  .player-bottom-area {
+    padding: 0 4px;
+    bottom: max(4px, var(--safe-bottom));
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 4px;
+  }
+
+  .player-identity-panel {
+    padding: 2px 6px 2px 2px;
+    gap: 5px;
+    border-radius: 20px;
+  }
+
+  .player-identity-panel img {
+    width: 34px;
+    height: 34px;
+  }
+
+  #player-name-txt {
+    font-size: 0.72rem;
+  }
+
+  #player-turn-status-txt {
+    font-size: 0.58rem;
+  }
+
+  .player-chips-badge {
+    font-size: 0.65rem !important;
+  }
+
+  /* Player Hand Container - Dynamic responsive fanning & touch elevation */
+  .player-hand-container {
+    padding-bottom: 2px;
+  }
+
+  .hand-card-wrapper {
+    margin-left: -16px;
+    touch-action: manipulation;
+  }
+
+  .hand-card-wrapper:first-child {
+    margin-left: 0;
+  }
+
+  .hand-card-wrapper .card-frame {
+    width: var(--card-w);
+    height: var(--card-h);
+  }
+
+  /* Responsive fanning for 8+ cards (Sueca, Submundo) */
+  .player-hand-container:has(.hand-card-wrapper:nth-child(5)) .hand-card-wrapper {
+    margin-left: -24px;
+  }
+
+  .player-hand-container:has(.hand-card-wrapper:nth-child(8)) .hand-card-wrapper {
+    margin-left: -32px;
+  }
+
+  /* Clear thumb elevation on tap or hover */
+  .hand-card-wrapper:hover,
+  .hand-card-wrapper:active,
+  .hand-card-wrapper.selected {
+    transform: translateY(-24px) scale(1.08) !important;
+    z-index: 99 !important;
+  }
+
+  /* Action Buttons on Mobile */
+  .table-action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .btn-truco {
+    padding: 8px 14px;
+    font-size: 1.05rem;
+    min-height: 44px;
+    border-radius: 6px;
+  }
+
+  .btn-ability {
+    padding: 6px 8px;
+    font-size: 0.72rem;
+    min-height: 42px;
+    border-radius: 6px;
+    gap: 4px;
+  }
+
+  .btn-ability svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  /* Poker Action Buttons on Mobile */
+  .poker-actions-bar {
+    gap: 4px;
+    padding: 3px;
+    max-width: 100%;
+  }
+
+  .btn-poker-action {
+    padding: 8px 6px;
+    font-size: 0.72rem;
+    min-height: 44px;
+    border-radius: 6px;
+    flex: 1;
+  }
+
+  .btn-chip-quick {
+    padding: 2px 4px;
+    font-size: 0.58rem;
+  }
+
+  /* Submundo Action Buttons on Mobile */
+  .submundo-actions-bar {
+    gap: 4px;
+    padding: 3px;
+    flex-direction: column;
+    width: auto;
+  }
+
+  .submundo-hand-preview {
+    padding: 2px 8px;
+    min-width: auto;
+  }
+
+  .hand-detect-name {
+    font-size: 0.85rem;
+  }
+
+  .hand-detect-score {
+    font-size: 0.72rem;
+  }
+
+  .btn-submundo-play {
+    padding: 8px 14px;
+    font-size: 1.02rem;
+    min-height: 44px;
+  }
+
+  .btn-submundo-discard {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    min-height: 40px;
+  }
+
+  /* Directional Winner Pointer Overlay on Mobile */
+  .table-winner-pointer-overlay {
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .winner-pointer-banner {
+    padding: 8px 14px;
+    gap: 8px;
+  }
+
+  .winner-main-title {
+    font-size: 0.95rem;
+  }
+
+  .winner-sub-detail {
+    font-size: 0.72rem;
+  }
+
+  .pointer-arrow-glyph svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* Modals on Mobile */
+  .lore-modal-box {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    padding: 16px 14px !important;
+    max-height: 88vh !important;
+  }
+
+  .lore-court-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .waiting-seats-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .shop-cards-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .challenge-box {
+    width: 92vw;
+    padding: 20px 14px;
+  }
+
+  .challenge-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .challenge-actions button {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .match-over-box {
+    width: 92vw;
+    padding: 24px 16px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   3. MOBILE LANDSCAPE ORIENTATION (@media max-height: 520px and landscape)
+   -------------------------------------------------------------------------- */
+@media (max-height: 520px) and (orientation: landscape) {
+  #game-container {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  .menu-content {
+    grid-template-columns: 200px 1fr;
+    padding: 10px 16px;
+    gap: 8px;
+  }
+
+  .room-actions {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .room-card {
+    min-height: 50px;
+    padding: 6px 10px;
+  }
+
+  .characters-carousel {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  .char-card-item {
+    height: 155px;
+  }
+
+  .table-hud-top {
+    top: 4px;
+    left: 10px;
+    right: 10px;
+  }
+
+  .seat-north {
+    top: 36px;
+  }
+
+  .seat-avatar-wrap {
+    width: 36px;
+    height: 36px;
+  }
+
+  .center-table-zone {
+    top: 40%;
+  }
+
+  .player-bottom-area {
+    bottom: 2px;
+  }
+
+  :root {
+    --card-w: clamp(45px, 8vw, 68px);
+    --card-h: clamp(64px, 11.5vw, 97px);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   4. ACCESSIBILITY: PREFERS REDUCED MOTION
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 
