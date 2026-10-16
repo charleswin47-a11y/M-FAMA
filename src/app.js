@@ -11,6 +11,7 @@ import { HintPanel } from "./ui/hintPanel.js";
 import { BettingEngine, POKER_STAGES } from "./game/poker/bettingEngine.js";
 import { RunManager } from "./game/poker/runManager.js";
 import { HandEvaluator } from "./game/cards/handEvaluator.js";
+import { WalletManager, TABLE_STAKES } from "./core/economy.js";
 
 export class MaFamaApp {
   constructor() {
@@ -21,6 +22,11 @@ export class MaFamaApp {
     this.hintPanel = new HintPanel(document.body, (highlightedIdx) => {
       this.highlightHandCard(highlightedIdx);
     });
+
+    // Virtual Economy & Table Stakes
+    this.wallet = new WalletManager();
+    this.selectedStake = TABLE_STAKES.find(s => s.id === "salao") || TABLE_STAKES[2]; // Default: Salão (500 fichas)
+    this.onlineRoomStake = 500;
 
     this.selectedPlayerChar = CHARACTERS[0]; // Trampa by default
     this.selectedOpponentChar = CHARACTERS[1]; // Veneno by default
@@ -43,6 +49,8 @@ export class MaFamaApp {
     this.initWebSocket();
     this.renderMenuCharacters();
     this.renderCourtLore();
+    this.initWallet();
+    this.setupStakesSelector();
 
     // Subscribe to settings to toggle DICA button
     this.settings.subscribe((s) => {
@@ -242,6 +250,21 @@ export class MaFamaApp {
     this.btnToggleLog = document.getElementById("btn-toggle-log");
     this.drawerLog = document.getElementById("drawer-log");
     this.btnCloseLog = document.getElementById("btn-close-log");
+
+    // Virtual Economy & Wallet DOM
+    this.headerChipsVal = document.getElementById("header-chips-val");
+    this.profileChipsVal = document.getElementById("profile-chips-val");
+    this.btnOpenWallet = document.getElementById("btn-open-wallet");
+    this.navCarteira = document.getElementById("nav-carteira");
+    this.walletModal = document.getElementById("wallet-modal");
+    this.btnCloseWallet = document.getElementById("btn-close-wallet");
+    this.walletModalBalance = document.getElementById("wallet-modal-balance");
+    this.btnRequestLoan = document.getElementById("btn-request-loan");
+    this.walletTxList = document.getElementById("wallet-tx-list");
+    this.walletLoanBox = document.getElementById("wallet-loan-box");
+    this.loanBoxStatusTxt = document.getElementById("loan-box-status-txt");
+    this.currentStakesDesc = document.getElementById("current-stakes-desc");
+    this.stakesPillsGrid = document.getElementById("stakes-pills-grid");
   }
 
   showWinnerPointer(targetSeat, title, subtitle = "") {
@@ -359,7 +382,35 @@ export class MaFamaApp {
     this.btnSubmitCreateRoom?.addEventListener("click", () => {
       const modeRadio = document.querySelector('input[name="mp-mode-select"]:checked');
       const selectedMode = modeRadio ? modeRadio.value : "sueca_tradicional";
-      this.createOnlineRoom(selectedMode);
+
+      const stakeRadio = document.querySelector('input[name="mp-stake-select"]:checked');
+      let chosenStake = 500;
+      if (stakeRadio) {
+        if (stakeRadio.value === "custom") {
+          const customInp = document.getElementById("input-custom-stake");
+          chosenStake = customInp && customInp.value ? Math.max(0, parseInt(customInp.value, 10)) : 500;
+        } else {
+          chosenStake = parseInt(stakeRadio.value, 10);
+        }
+      }
+
+      if (chosenStake > 0 && !this.wallet.canAfford(chosenStake)) {
+        this.audio.playChips();
+        this.openWalletModal();
+        return;
+      }
+
+      this.createOnlineRoom(selectedMode, chosenStake);
+    });
+
+    // Custom stake toggle in MP modal
+    document.querySelectorAll('input[name="mp-stake-select"]').forEach(radio => {
+      radio.addEventListener("change", (e) => {
+        const wrap = document.getElementById("mp-custom-stake-wrap");
+        if (wrap) {
+          wrap.style.display = e.target.value === "custom" ? "block" : "none";
+        }
+      });
     });
 
     // Submit Join Room
@@ -432,9 +483,26 @@ export class MaFamaApp {
       }
     });
 
+    // Wallet Modal Events
+    this.btnOpenWallet?.addEventListener("click", () => this.openWalletModal());
+    this.navCarteira?.addEventListener("click", () => this.openWalletModal());
+    const profileChips = document.getElementById("player-badge-chips");
+    profileChips?.addEventListener("click", () => this.openWalletModal());
+    this.btnCloseWallet?.addEventListener("click", () => this.closeWalletModal());
+    this.btnRequestLoan?.addEventListener("click", () => this.handleLoanRequest());
+
     // Start Game from Main Menu
     this.btnStartGame?.addEventListener("click", () => {
       this.audio.init();
+
+      // Check buy-in affordability
+      const stakeAmount = this.selectedStake ? this.selectedStake.chips : 0;
+      if (stakeAmount > 0 && !this.wallet.canAfford(stakeAmount)) {
+        this.audio.playChips();
+        this.openWalletModal();
+        return;
+      }
+
       if (this.matchType === "online") {
         this.openMultiplayerChoiceModal();
       } else if (this.matchType === "bot" && this.ws && this.ws.readyState === WebSocket.OPEN) {
@@ -453,6 +521,9 @@ export class MaFamaApp {
       this.menuScreen.classList.add("active");
       this.hintPanel.hide();
       this.resetTableModeViews();
+      if (this.wallet.getActiveReservation()) {
+        this.wallet.refundStake("Saída voluntária da mesa");
+      }
       if (this.gameState) {
         this.gameState.state = "IDLE";
       }
@@ -533,6 +604,9 @@ export class MaFamaApp {
       this.matchOverModal.classList.remove("active");
       this.tableScreen.classList.remove("active");
       this.menuScreen.classList.add("active");
+      if (this.wallet.getActiveReservation()) {
+        this.wallet.refundStake("Retorno ao menu principal");
+      }
       if (this.isOnlineMatch) {
         this.leaveOnlineRoom();
       }
@@ -758,6 +832,12 @@ export class MaFamaApp {
 
     this.resetTableModeViews();
     this.revealedBotCardId = null;
+
+    // Virtual Economy: Reserve Table Buy-in
+    const stakeAmount = this.selectedStake ? this.selectedStake.chips : 0;
+    this.wallet.reserveStake(stakeAmount, `match_${Date.now()}`, `${this.selectedStake.name} (${this.selectedRuleset})`);
+    this.updateTableEconomyHUD(stakeAmount);
+
     this.gameState = new GameState(this.selectedPlayerChar, this.selectedOpponentChar, this.selectedRuleset);
     this.gameState.startMatch();
 
@@ -1575,6 +1655,10 @@ export class MaFamaApp {
     subEl.textContent = `${winnerChar.name} conquistou os 12 tentos da mesa da Última Ficha! Placar final: ${this.gameState.playerScore} : ${this.gameState.botScore}`;
     avatarEl.src = winnerChar.portrait;
 
+    // Virtual Economy: Settle table prize distribution
+    const settle = this.wallet.settleMatch({ won: isPlayerWin, playerCount: 4, mode: this.selectedRuleset });
+    this.renderSettlementBanner(settle);
+
     this.matchOverModal.classList.add("active");
   }
 
@@ -1639,8 +1723,16 @@ export class MaFamaApp {
       case "ROOM_JOINED":
         this.onlineRoomCode = msg.roomCode;
         this.onlinePlayerId = msg.playerId;
+        this.onlineRoomStake = typeof msg.stake === "number" ? msg.stake : (this.selectedStake ? this.selectedStake.chips : 500);
         this.isOnlineMatch = true;
         this.mpChoiceModal.classList.remove("active");
+
+        // Reserve online table stake
+        if (this.onlineRoomStake > 0) {
+          this.wallet.reserveStake(this.onlineRoomStake, msg.roomCode, `Mesa Online (${msg.roomCode})`);
+        }
+        this.updateTableEconomyHUD(this.onlineRoomStake);
+
         if (msg.solo || this.isSoloMatch) {
           // Immediately enter table screen in solo match
           this.waitingRoomModal.classList.remove("active");
@@ -1648,6 +1740,12 @@ export class MaFamaApp {
           this.tableScreen.classList.add("active");
         } else {
           this.waitingRoomCodeDisplay.textContent = msg.roomCode;
+          const waitingStakeTxt = document.getElementById("waiting-room-stake-txt");
+          if (waitingStakeTxt) {
+            waitingStakeTxt.textContent = this.onlineRoomStake > 0
+              ? `Entrada: ${this.wallet.formatChips(this.onlineRoomStake)} fichas • Pote da Mesa: ${this.wallet.formatChips(this.onlineRoomStake * 4)} fichas`
+              : "Mesa de Treino Livre (Sem fichas apostadas)";
+          }
           this.waitingRoomModal.classList.add("active");
         }
         break;
@@ -1686,18 +1784,20 @@ export class MaFamaApp {
       this.startNewMatch();
       return;
     }
+    const stakeAmount = this.selectedStake ? this.selectedStake.chips : 0;
     this.isSoloMatch = true;
     this.isOnlineMatch = true;
     this.ws.send(JSON.stringify({
       type: "CREATE_ROOM",
       mode: mode,
       solo: true,
+      stake: stakeAmount,
       playerName: this.selectedPlayerChar.name,
       charId: this.selectedPlayerChar.id
     }));
   }
 
-  createOnlineRoom(mode) {
+  createOnlineRoom(mode, stake = 500) {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       alert("Conectando ao servidor... Tente novamente em alguns segundos.");
       return;
@@ -1708,6 +1808,7 @@ export class MaFamaApp {
       type: "CREATE_ROOM",
       mode: mode,
       solo: false,
+      stake: typeof stake === "number" ? stake : 500,
       playerName: this.selectedPlayerChar.name,
       charId: this.selectedPlayerChar.id
     }));
@@ -2046,6 +2147,14 @@ export class MaFamaApp {
       titleEl.textContent = "FIM DA PARTIDA";
       titleEl.style.color = "var(--gold-bright)";
       subEl.textContent = `Vencedores: ${room.winner}! Placar Final: ${room.teamAScore} : ${room.teamBScore} tentos.`;
+
+      // Virtual Economy Online Settlement
+      const me = room.players.find(p => p.id === this.onlinePlayerId) || room.players[0];
+      const myTeam = me ? me.team : "teamA";
+      const isWinner = room.winner && (myTeam === "teamA" ? room.winner.includes("Sua Dupla") : room.winner.includes("Adversários"));
+      const settle = this.wallet.settleMatch({ won: !!isWinner, playerCount: 4, mode: room.mode });
+      this.renderSettlementBanner(settle);
+
       this.matchOverModal.classList.add("active");
     }
   }
@@ -2635,6 +2744,168 @@ export class MaFamaApp {
       this.startPokerSubmundoMatch();
     } else {
       this.renderSubmundoTable();
+    }
+  }
+
+  // =========================================================================
+  // VIRTUAL ECONOMY, PLAYER WALLET & TABLE STAKES LOGIC
+  // =========================================================================
+  initWallet() {
+    this.updateWalletUI(this.wallet.getBalance());
+    this.wallet.onChange((bal) => {
+      this.updateWalletUI(bal);
+    });
+  }
+
+  updateWalletUI(balance) {
+    const formatted = this.wallet.formatChips(balance);
+    if (this.headerChipsVal) {
+      this.headerChipsVal.innerHTML = `${formatted} <small>fichas</small>`;
+    }
+    if (this.profileChipsVal) {
+      this.profileChipsVal.textContent = `${formatted} fichas`;
+    }
+    if (this.walletModalBalance) {
+      this.walletModalBalance.textContent = formatted;
+    }
+
+    // Check emergency loan eligibility (< 100 chips)
+    if (this.walletLoanBox && this.btnRequestLoan) {
+      if (balance < 100) {
+        this.walletLoanBox.classList.add("eligible");
+        this.btnRequestLoan.disabled = false;
+        if (this.loanBoxStatusTxt) {
+          this.loanBoxStatusTxt.textContent = "Atenção: Seu saldo está abaixo de 100 fichas! Você tem direito a um empréstimo de +500 fichas de cortesia da casa para voltar ao jogo.";
+        }
+      } else {
+        this.walletLoanBox.classList.remove("eligible");
+        this.btnRequestLoan.disabled = true;
+        if (this.loanBoxStatusTxt) {
+          this.loanBoxStatusTxt.textContent = "Empréstimo disponível apenas quando seu saldo estiver abaixo de 100 fichas.";
+        }
+      }
+    }
+  }
+
+  openWalletModal() {
+    this.audio.playChips();
+    this.updateWalletUI(this.wallet.getBalance());
+    this.renderWalletTransactions();
+    if (this.walletModal) {
+      this.walletModal.classList.add("active");
+    }
+  }
+
+  closeWalletModal() {
+    if (this.walletModal) {
+      this.walletModal.classList.remove("active");
+    }
+  }
+
+  handleLoanRequest() {
+    const res = this.wallet.requestEmergencyLoan();
+    if (res.success) {
+      this.audio.playChips();
+      this.updateWalletUI(res.balance);
+      this.renderWalletTransactions();
+      alert(`Empréstimo concedido! +${this.wallet.formatChips(res.amount)} fichas adicionadas à sua carteira virtual.`);
+    } else {
+      alert(res.message || "Não foi possível conceder o empréstimo.");
+    }
+  }
+
+  renderWalletTransactions() {
+    if (!this.walletTxList) return;
+    this.walletTxList.innerHTML = "";
+
+    const txs = this.wallet.getTransactions();
+    if (!txs || txs.length === 0) {
+      this.walletTxList.innerHTML = `<div style="text-align: center; color: var(--text-secondary); font-size: 0.8rem; padding: 12px;">Nenhuma transação registrada ainda.</div>`;
+      return;
+    }
+
+    txs.forEach(tx => {
+      const item = document.createElement("div");
+      const isPos = tx.amount > 0;
+      const isLoan = tx.type === "EMERGENCY_LOAN";
+      item.className = `wallet-tx-item ${isLoan ? "loan" : isPos ? "positive" : "negative"}`;
+
+      const dateStr = new Date(tx.timestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+      const sign = isPos ? "+" : "";
+
+      item.innerHTML = `
+        <div class="tx-left">
+          <span class="tx-desc">${tx.description}</span>
+          <span class="tx-date">${dateStr}</span>
+        </div>
+        <div class="tx-right">
+          <span class="tx-amount ${isPos ? "pos" : "neg"}">${sign}${this.wallet.formatChips(tx.amount)}</span>
+          <span class="tx-balance">Saldo: ${this.wallet.formatChips(tx.balanceAfter)}</span>
+        </div>
+      `;
+      this.walletTxList.appendChild(item);
+    });
+  }
+
+  setupStakesSelector() {
+    const pills = document.querySelectorAll(".stake-card-pill");
+    pills.forEach(pill => {
+      pill.addEventListener("click", () => {
+        this.audio.playChips();
+        pills.forEach(p => p.classList.remove("active"));
+        pill.classList.add("active");
+
+        const stakeId = pill.dataset.stakeId;
+        const found = TABLE_STAKES.find(s => s.id === stakeId);
+        if (found) {
+          this.selectedStake = found;
+          if (this.currentStakesDesc) {
+            const potStr = found.chips > 0 ? `Pote: ${this.wallet.formatChips(found.chips * 4)} fichas` : "Sem apostas";
+            this.currentStakesDesc.textContent = `${found.name} • Entrada de ${this.wallet.formatChips(found.chips)} fichas por jogador • ${potStr}`;
+          }
+        }
+      });
+    });
+  }
+
+  updateTableEconomyHUD(customStake = null) {
+    const stake = customStake !== null ? customStake : (this.selectedStake ? this.selectedStake.chips : 0);
+    const playerCount = 4;
+    const pot = stake * playerCount;
+
+    const potNum = document.getElementById("hud-pot-num");
+    const stakeVal = document.getElementById("hud-stake-val");
+    if (potNum) potNum.textContent = stake > 0 ? this.wallet.formatChips(pot) : "0";
+    if (stakeVal) stakeVal.textContent = stake > 0 ? this.wallet.formatChips(stake) : "Grátis";
+  }
+
+  renderSettlementBanner(settle) {
+    const banner = document.getElementById("match-settlement-banner");
+    const titleEl = document.getElementById("settlement-title");
+    const numsEl = document.getElementById("settlement-nums");
+    const noteEl = document.getElementById("settlement-note");
+    if (!banner || !numsEl) return;
+
+    if (!settle || settle.stake === 0) {
+      banner.style.display = "flex";
+      titleEl.textContent = "MESA DE TREINO LIVRE";
+      numsEl.textContent = "Partida Amistosa (0 fichas apostadas)";
+      numsEl.className = "settlement-nums";
+      noteEl.textContent = "Seu saldo de fichas permanece inalterado.";
+      return;
+    }
+
+    banner.style.display = "flex";
+    if (settle.won) {
+      titleEl.textContent = "DISTRIBUIÇÃO DE PRÊMIO • VITÓRIA";
+      numsEl.textContent = `+${this.wallet.formatChips(settle.prize)} fichas (Lucro líquido: +${this.wallet.formatChips(settle.netProfit)})`;
+      numsEl.className = "settlement-nums";
+      noteEl.textContent = `Entrada de ${this.wallet.formatChips(settle.stake)} fichas recuperada com bônus integral de vitória!`;
+    } else {
+      titleEl.textContent = "DISTRIBUIÇÃO DE PRÊMIO • DERROTA";
+      numsEl.textContent = `-${this.wallet.formatChips(settle.stake)} fichas (entrada perdida)`;
+      numsEl.className = "settlement-nums loss";
+      noteEl.textContent = `As fichas reservadas foram pagas à dupla vencedora.`;
     }
   }
 }

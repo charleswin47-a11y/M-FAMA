@@ -154,12 +154,19 @@ function broadcastRoom(room) {
       teamAPoints: room.teamAPoints, // Round card points in Sueca (out of 120)
       teamBPoints: room.teamBPoints,
       currentStake: room.currentStake || 1,
+      tableStake: room.stake || 0,
       trickWinners: room.trickWinners || [],
       pendingRaise: room.pendingRaise || null,
       lastTrickWinner: room.lastTrickWinner,
       players: sanitizedPlayers,
       winner: room.matchWinner,
-      announcement: room.announcement
+      announcement: room.announcement,
+      prizeBreakdown: room.status === "MATCH_OVER" && room.stake ? {
+        stake: room.stake,
+        totalPot: (room.players.length || 4) * room.stake,
+        prizePerWinner: room.players.length >= 4 ? ((room.players.length * room.stake) / 2) : (room.players.length * room.stake),
+        netProfit: room.players.length >= 4 ? (((room.players.length * room.stake) / 2) - room.stake) : ((room.players.length * room.stake) - room.stake)
+      } : null
     };
 
     p.ws.send(JSON.stringify(msg));
@@ -568,9 +575,12 @@ wss.on("connection", ws => {
           playerId = `p_${Math.random().toString(36).substr(2, 6)}`;
           playerRoomCode = code;
 
+          const stakeVal = typeof data.stake === "number" ? Math.max(0, data.stake) : 500;
+
           const room = {
             code,
             mode: data.mode || "sueca_tradicional",
+            stake: stakeVal,
             status: "LOBBY",
             players: [
               {
@@ -594,7 +604,7 @@ wss.on("connection", ws => {
           };
 
           rooms.set(code, room);
-          ws.send(JSON.stringify({ type: "ROOM_CREATED", roomCode: code, playerId, solo: !!data.solo }));
+          ws.send(JSON.stringify({ type: "ROOM_CREATED", roomCode: code, playerId, solo: !!data.solo, stake: stakeVal }));
 
           if (data.solo) {
             const allChars = [
@@ -704,7 +714,7 @@ wss.on("connection", ws => {
             ws
           });
 
-          ws.send(JSON.stringify({ type: "ROOM_JOINED", roomCode: room.code, playerId }));
+          ws.send(JSON.stringify({ type: "ROOM_JOINED", roomCode: room.code, playerId, stake: room.stake || 0 }));
           broadcastRoom(room);
           break;
         }

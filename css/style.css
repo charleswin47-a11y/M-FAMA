@@ -3948,4 +3948,639 @@ body.reduced-motion *::after {
   }
 }
 
+/* ==========================================================================
+   VIRTUAL ECONOMY, PLAYER WALLET & TABLE STAKES SYSTEM
+   ========================================================================== */
+.header-right-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Header Wallet Button */
+.wallet-badge-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, rgba(32, 22, 35, 0.9) 0%, rgba(18, 12, 20, 0.95) 100%);
+  border: 1.5px solid rgba(216, 173, 102, 0.45);
+  border-radius: 30px;
+  padding: 6px 16px;
+  cursor: pointer;
+  color: var(--text-primary);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.wallet-badge-btn:hover {
+  border-color: var(--gold-bright);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6), 0 0 14px rgba(216, 173, 102, 0.3);
+}
+
+.wallet-chip-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold-bright);
+  filter: drop-shadow(0 0 6px rgba(216, 173, 102, 0.5));
+}
+
+.wallet-badge-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.wallet-badge-label {
+  font-size: 0.62rem;
+  letter-spacing: 1.5px;
+  color: var(--gold);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.wallet-badge-val {
+  font-family: var(--font-title);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.8px;
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.wallet-badge-val small {
+  font-size: 0.68rem;
+  color: var(--gold-bright);
+  font-weight: normal;
+  text-transform: uppercase;
+}
+
+/* Profile Footer Chips Pill */
+.profile-chips-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(216, 173, 102, 0.35);
+  border-radius: 12px;
+  padding: 2px 8px;
+  margin-top: 4px;
+  font-size: 0.72rem;
+  color: var(--gold-bright);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.profile-chips-pill:hover {
+  border-color: var(--gold);
+  background: rgba(116, 38, 58, 0.35);
+}
+
+/* Stakes Selector in Lobby */
+.stakes-selector-container {
+  margin-bottom: 14px;
+}
+
+.stakes-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.stakes-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stakes-info-tag {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.stakes-rule-hint {
+  font-size: 0.74rem;
+  color: var(--gold);
+  letter-spacing: 0.5px;
+}
+
+.stakes-pills-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.stake-card-pill {
+  background: rgba(22, 16, 25, 0.75);
+  border: 1.5px solid rgba(216, 173, 102, 0.25);
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.stake-card-pill:hover {
+  border-color: var(--gold);
+  background: rgba(36, 26, 40, 0.85);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+}
+
+.stake-card-pill.active {
+  border-color: var(--gold-bright);
+  background: linear-gradient(135deg, rgba(116, 38, 58, 0.45) 0%, rgba(36, 26, 40, 0.9) 100%);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 16px rgba(216, 173, 102, 0.3);
+}
+
+.stake-card-pill.active::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-bright));
+}
+
+.stake-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.stake-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.stake-badge {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(216, 173, 102, 0.2);
+  color: var(--gold-bright);
+  border: 1px solid rgba(216, 173, 102, 0.3);
+  font-weight: 700;
+}
+
+.stake-badge.free {
+  background: rgba(110, 159, 120, 0.25);
+  color: #8edba0;
+  border-color: rgba(110, 159, 120, 0.4);
+}
+
+.stake-badge.popular {
+  background: rgba(116, 38, 58, 0.4);
+  color: #ffd6df;
+  border-color: rgba(193, 74, 80, 0.5);
+}
+
+.stake-badge.vip {
+  background: linear-gradient(135deg, rgba(216, 173, 102, 0.4) 0%, rgba(184, 134, 11, 0.6) 100%);
+  color: #fff;
+  border-color: var(--gold-bright);
+}
+
+.stake-val {
+  font-family: var(--font-title);
+  font-size: 1.25rem;
+  color: var(--gold-bright);
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.stake-val .unit {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-weight: normal;
+}
+
+.stake-sub {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+/* Multiplayer Stakes Radio Grid */
+.mp-stakes-radio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.mp-stake-radio {
+  cursor: pointer;
+}
+
+.mp-stake-radio input {
+  display: none;
+}
+
+.mp-stake-pill {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(216, 173, 102, 0.25);
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.mp-stake-radio input:checked + .mp-stake-pill {
+  border-color: var(--gold-bright);
+  background: rgba(116, 38, 58, 0.45);
+  box-shadow: 0 0 12px rgba(216, 173, 102, 0.3);
+}
+
+.mp-stake-pill strong {
+  font-size: 0.8rem;
+  color: #fff;
+}
+
+.mp-stake-pill span {
+  font-size: 0.68rem;
+  color: var(--gold);
+}
+
+/* Waiting Room Stake Pill */
+.waiting-stake-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(216, 173, 102, 0.35);
+  border-radius: 20px;
+  padding: 4px 12px;
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: var(--gold-bright);
+}
+
+/* Table HUD Top Economy Badges */
+.table-economy-hud {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hud-eco-badge {
+  display: flex;
+  flex-direction: column;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(216, 173, 102, 0.25);
+  border-radius: 6px;
+  padding: 2px 10px;
+  text-align: center;
+}
+
+.hud-eco-badge .eco-label {
+  font-size: 0.58rem;
+  color: var(--gold);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.hud-eco-badge .eco-val {
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  color: #fff;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.hud-eco-badge .eco-val svg {
+  color: var(--gold-bright);
+}
+
+/* Match Over Settlement Banner */
+.match-settlement-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(135deg, rgba(30, 22, 34, 0.9) 0%, rgba(14, 10, 16, 0.95) 100%);
+  border: 1.5px solid var(--gold);
+  border-radius: 10px;
+  padding: 12px 18px;
+  margin: 10px 0 16px 0;
+  text-align: left;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(216, 173, 102, 0.2);
+}
+
+.settlement-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(216, 173, 102, 0.15);
+  border: 1.5px solid var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold-bright);
+  flex-shrink: 0;
+}
+
+.settlement-title {
+  font-size: 0.68rem;
+  color: var(--gold);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 700;
+  display: block;
+}
+
+.settlement-nums {
+  font-family: var(--font-title);
+  font-size: 1.25rem;
+  color: #8edba0;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  margin: 2px 0;
+}
+
+.settlement-nums.loss {
+  color: #e67379;
+}
+
+.settlement-note {
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+}
+
+/* Wallet Modal Styling */
+.wallet-modal-box {
+  width: 100%;
+}
+
+.wallet-balance-card {
+  background: radial-gradient(circle at 50% 30%, rgba(116, 38, 58, 0.3) 0%, rgba(20, 14, 25, 0.85) 100%);
+  border: 1.5px solid var(--gold);
+  border-radius: 12px;
+  padding: 18px 24px;
+  text-align: center;
+  margin-bottom: 16px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 6px 25px rgba(0, 0, 0, 0.4);
+}
+
+.wallet-balance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.74rem;
+  color: var(--gold);
+  letter-spacing: 1.5px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.wallet-status-badge {
+  background: rgba(216, 173, 102, 0.2);
+  border: 1px solid rgba(216, 173, 102, 0.35);
+  border-radius: 10px;
+  padding: 2px 8px;
+  color: var(--gold-bright);
+  font-size: 0.65rem;
+}
+
+.wallet-balance-num-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 10px 0;
+}
+
+.wallet-big-chip {
+  color: var(--gold-bright);
+  display: flex;
+  align-items: center;
+  filter: drop-shadow(0 0 12px rgba(216, 173, 102, 0.6));
+}
+
+.wallet-big-num {
+  font-family: var(--font-title);
+  font-size: 3.2rem;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 1.5px;
+  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.8), 0 0 25px rgba(216, 173, 102, 0.35);
+  line-height: 1;
+}
+
+.wallet-big-unit {
+  font-size: 1.1rem;
+  color: var(--gold-bright);
+  font-family: var(--font-title);
+  letter-spacing: 1px;
+}
+
+.wallet-balance-note {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin-top: 8px;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Loan Box */
+.wallet-loan-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(30, 20, 10, 0.6);
+  border: 1.5px dashed rgba(216, 173, 102, 0.5);
+  border-radius: 10px;
+  padding: 12px 18px;
+  margin-bottom: 20px;
+  gap: 14px;
+}
+
+.wallet-loan-box.eligible {
+  border-color: var(--gold-bright);
+  background: rgba(116, 38, 58, 0.3);
+  animation: pulse-loan 2s infinite ease-in-out;
+}
+
+@keyframes pulse-loan {
+  0%, 100% { box-shadow: 0 0 0 rgba(216, 173, 102, 0); }
+  50% { box-shadow: 0 0 15px rgba(216, 173, 102, 0.4); }
+}
+
+.loan-info strong {
+  font-size: 0.9rem;
+  color: var(--gold-bright);
+  display: block;
+  margin-bottom: 2px;
+}
+
+.loan-info p {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.35;
+}
+
+/* Transactions List */
+.wallet-tx-section {
+  border-top: 1px solid rgba(216, 173, 102, 0.2);
+  padding-top: 14px;
+}
+
+.wallet-tx-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+
+.wallet-tx-header h4 {
+  font-family: var(--font-title);
+  color: var(--gold-bright);
+  font-size: 1.05rem;
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+.tx-subtitle {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.wallet-tx-list {
+  max-height: 200px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-right: 4px;
+}
+
+.wallet-tx-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.35);
+  border-left: 3px solid rgba(216, 173, 102, 0.3);
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  transition: background 0.2s;
+}
+
+.wallet-tx-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.wallet-tx-item.positive {
+  border-left-color: #8edba0;
+}
+
+.wallet-tx-item.negative {
+  border-left-color: #e67379;
+}
+
+.wallet-tx-item.loan {
+  border-left-color: var(--gold-bright);
+}
+
+.tx-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tx-desc {
+  color: #fff;
+  font-weight: 600;
+}
+
+.tx-date {
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+}
+
+.tx-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.tx-amount {
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.tx-amount.pos {
+  color: #8edba0;
+}
+
+.tx-amount.neg {
+  color: #e67379;
+}
+
+.tx-balance {
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+}
+
+/* Mobile Responsiveness for Stakes and Wallet */
+@media (max-width: 600px) {
+  .stakes-pills-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  
+  .wallet-big-num {
+    font-size: 2.3rem;
+  }
+  
+  .wallet-loan-box {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+  
+  .header-right-group {
+    gap: 8px;
+  }
+  
+  .wallet-badge-btn {
+    padding: 4px 10px;
+  }
+  
+  .wallet-badge-label {
+    display: none;
+  }
+}
+
+
 

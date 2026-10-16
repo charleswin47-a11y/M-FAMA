@@ -428,6 +428,7 @@ export class AudioManager {
   playCardDeal() {
     if (this.isMuted) return;
     this.init();
+    if (!this.ctx) return;
     const t = this.ctx.currentTime;
 
     // 3 rhythmic paper cards sliding
@@ -585,6 +586,7 @@ export class AudioManager {
   playChips() {
     if (this.isMuted) return;
     this.init();
+    if (!this.ctx) return;
     const t = this.ctx.currentTime;
 
     for (let i = 0; i < 3; i++) {
@@ -606,6 +608,7 @@ export class AudioManager {
   playTrickWin() {
     if (this.isMuted) return;
     this.init();
+    if (!this.ctx) return;
     const t = this.ctx.currentTime;
     [261.63, 329.63, 392.00].forEach((freq, idx) => {
       const osc = this.ctx.createOscillator();
@@ -625,6 +628,7 @@ export class AudioManager {
   playVictory() {
     if (this.isMuted) return;
     this.init();
+    if (!this.ctx) return;
     const t = this.ctx.currentTime;
     const notes = [130.81, 196.00, 261.63, 329.63, 392.00, 523.25]; // C major 9 resolution
     notes.forEach((freq, idx) => {
@@ -645,6 +649,7 @@ export class AudioManager {
   playDefeat() {
     if (this.isMuted) return;
     this.init();
+    if (!this.ctx) return;
     const t = this.ctx.currentTime;
     const notes = [65.41, 110.00, 155.56, 196.00]; // Low C dim / minor
     notes.forEach((freq, idx) => {

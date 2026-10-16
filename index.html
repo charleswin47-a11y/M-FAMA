@@ -25,15 +25,27 @@
             <img src="assets/art/ui/logo.png" alt="MÁ FAMA" class="brand-logo-img">
           </div>
 
-          <div class="online-status-bar">
-            <div class="online-avatars">
-              <img src="assets/art/characters/avatars/avatar_veneno.png" alt="Veneno">
-              <img src="assets/art/characters/avatars/avatar_calibre.png" alt="Calibre">
-              <img src="assets/art/characters/avatars/avatar_pixel.png" alt="Pixel">
-            </div>
-            <div class="status-indicator">
-              <span class="status-dot"></span>
-              <span>Vila do Azar &bull; Noite Aberta</span>
+          <div class="header-right-group">
+            <button class="wallet-badge-btn" id="btn-open-wallet" title="Abrir Carteira de Fichas">
+              <span class="wallet-chip-icon">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><line x1="12" y1="3" x2="12" y2="7"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="3" y1="12" x2="7" y2="12"/><line x1="17" y1="12" x2="21" y2="12"/></svg>
+              </span>
+              <div class="wallet-badge-info">
+                <span class="wallet-badge-label">CARTEIRA</span>
+                <span class="wallet-badge-val" id="header-chips-val">2.500 <small>fichas</small></span>
+              </div>
+            </button>
+
+            <div class="online-status-bar">
+              <div class="online-avatars">
+                <img src="assets/art/characters/avatars/avatar_veneno.png" alt="Veneno">
+                <img src="assets/art/characters/avatars/avatar_calibre.png" alt="Calibre">
+                <img src="assets/art/characters/avatars/avatar_pixel.png" alt="Pixel">
+              </div>
+              <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span>Vila do Azar &bull; Noite Aberta</span>
+              </div>
             </div>
           </div>
         </header>
@@ -43,6 +55,10 @@
           <button class="nav-item active" id="nav-jogar">
             <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="13" height="15" rx="2" ry="2"/><path d="M5 7V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-2"/></svg></span>
             <span>MESA PRINCIPAL</span>
+          </button>
+          <button class="nav-item" id="nav-carteira">
+            <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><line x1="12" y1="3" x2="12" y2="7"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="3" y1="12" x2="7" y2="12"/><line x1="17" y1="12" x2="21" y2="12"/></svg></span>
+            <span>CARTEIRA & FICHAS</span>
           </button>
           <button class="nav-item" id="btn-open-dossier-menu">
             <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
@@ -83,6 +99,54 @@
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
               <span>DUELO LOCAL (2P MESMO TECLADO)</span>
             </button>
+          </div>
+
+          <!-- Table Buy-in / Stakes Selector -->
+          <div class="stakes-selector-container" id="lobby-stakes-container">
+            <div class="stakes-header-row">
+              <div class="stakes-header-left">
+                <span class="label-badge">VALOR DA MESA</span>
+                <span class="stakes-info-tag" id="current-stakes-desc">Salão &bull; Entrada de 500 fichas por jogador &bull; Pote: 2.000 fichas</span>
+              </div>
+              <span class="stakes-rule-hint">Fichas reservadas ao iniciar &bull; Distribuídas aos vencedores ao fim</span>
+            </div>
+            <div class="stakes-pills-grid" id="stakes-pills-grid">
+              <button class="stake-card-pill" data-stake-id="treino" data-chips="0">
+                <div class="stake-card-top">
+                  <span class="stake-name">Treino Livre</span>
+                  <span class="stake-badge free">GRÁTIS</span>
+                </div>
+                <div class="stake-val">0 <span class="unit">fichas</span></div>
+                <div class="stake-sub">Para praticar sem risco</div>
+              </button>
+
+              <button class="stake-card-pill" data-stake-id="entrada" data-chips="100">
+                <div class="stake-card-top">
+                  <span class="stake-name">Mesa de Entrada</span>
+                  <span class="stake-badge">INICIAL</span>
+                </div>
+                <div class="stake-val">100 <span class="unit">fichas</span></div>
+                <div class="stake-sub">Para começar &bull; Pote: 400</div>
+              </button>
+
+              <button class="stake-card-pill active" data-stake-id="salao" data-chips="500">
+                <div class="stake-card-top">
+                  <span class="stake-name">Salão</span>
+                  <span class="stake-badge popular">PADRÃO</span>
+                </div>
+                <div class="stake-val">500 <span class="unit">fichas</span></div>
+                <div class="stake-sub">Intermediárias &bull; Pote: 2.000</div>
+              </button>
+
+              <button class="stake-card-pill" data-stake-id="altas" data-chips="2500">
+                <div class="stake-card-top">
+                  <span class="stake-name">Altas Apostas</span>
+                  <span class="stake-badge vip">VIP</span>
+                </div>
+                <div class="stake-val">2.500 <span class="unit">fichas</span></div>
+                <div class="stake-sub">Para quem acumulou fichas</div>
+              </button>
+            </div>
           </div>
 
           <!-- The 6 Official Game Modes: Truco, Sueca, Poker Tradicional, and Poker Submundo -->
@@ -178,6 +242,10 @@
             <div class="player-profile-info">
               <div class="p-name" id="player-badge-name">Trampa</div>
               <div class="p-lvl">Fama da Última Ficha &bull; 12 Tentos</div>
+              <div class="profile-chips-pill" id="player-badge-chips">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><line x1="12" y1="3" x2="12" y2="7"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="3" y1="12" x2="7" y2="12"/><line x1="17" y1="12" x2="21" y2="12"/></svg>
+                <span id="profile-chips-val">2.500 fichas</span>
+              </div>
             </div>
           </div>
 
@@ -208,6 +276,20 @@
             <div class="score-side bot-score">
               <span class="score-label" id="hud-opponent-label">OPONENTE</span>
               <span class="score-num" id="bot-score-num">0</span>
+            </div>
+          </div>
+
+          <div class="table-economy-hud" id="table-economy-hud">
+            <div class="hud-eco-badge" id="hud-table-pot-badge" title="Pote de fichas em disputa nesta partida">
+              <span class="eco-label">POTE DA MESA</span>
+              <span class="eco-val" id="hud-pot-val">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><line x1="12" y1="3" x2="12" y2="7"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="3" y1="12" x2="7" y2="12"/><line x1="17" y1="12" x2="21" y2="12"/></svg>
+                <span id="hud-pot-num">2.000</span>
+              </span>
+            </div>
+            <div class="hud-eco-badge" id="hud-table-stake-badge" title="Valor de entrada por jogador">
+              <span class="eco-label">ENTRADA</span>
+              <span class="eco-val" id="hud-stake-val">500</span>
             </div>
           </div>
 
@@ -466,8 +548,21 @@
         <div class="match-over-box">
           <h2 id="match-over-title">FIM DE PARTIDA</h2>
           <img id="match-winner-avatar" class="winner-avatar" src="assets/art/characters/portraits/char_trampa_portrait.png" alt="Vencedor">
-          <p id="match-over-sub" style="color: var(--text-secondary); margin-bottom: 25px;"></p>
-          <div style="display: flex; gap: 15px; justify-content: center;">
+          <p id="match-over-sub" style="color: var(--text-secondary); margin-bottom: 16px;"></p>
+
+          <!-- Virtual Economy Settlement Banner -->
+          <div class="match-settlement-banner" id="match-settlement-banner">
+            <div class="settlement-icon" id="settlement-icon">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><line x1="12" y1="3" x2="12" y2="7"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="3" y1="12" x2="7" y2="12"/><line x1="17" y1="12" x2="21" y2="12"/></svg>
+            </div>
+            <div class="settlement-details">
+              <span class="settlement-title" id="settlement-title">DISTRIBUIÇÃO DE FICHAS</span>
+              <div class="settlement-nums" id="settlement-nums">+1.000 fichas (Lucro líquido: +500)</div>
+              <span class="settlement-note" id="settlement-note">Saldo atualizado na sua carteira virtual</span>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px;">
             <button class="btn-primary" id="btn-rematch">NOVA RODADA</button>
             <button class="btn-secondary" id="btn-back-to-menu">MENU PRINCIPAL</button>
           </div>
@@ -676,6 +771,50 @@
             </label>
           </div>
 
+          <label style="font-size: 0.8rem; color: var(--gold); letter-spacing: 1px; text-transform: uppercase; display: block; margin-top: 18px; margin-bottom: 8px;">
+            VALOR DE ENTRADA POR JOGADOR (FICHAS)
+          </label>
+          <div class="mp-stakes-radio-grid">
+            <label class="mp-stake-radio">
+              <input type="radio" name="mp-stake-select" value="0">
+              <div class="mp-stake-pill">
+                <strong>Treino (0)</strong>
+                <span>Sem fichas</span>
+              </div>
+            </label>
+            <label class="mp-stake-radio">
+              <input type="radio" name="mp-stake-select" value="100">
+              <div class="mp-stake-pill">
+                <strong>Entrada (100)</strong>
+                <span>Pote: 400</span>
+              </div>
+            </label>
+            <label class="mp-stake-radio">
+              <input type="radio" name="mp-stake-select" value="500" checked>
+              <div class="mp-stake-pill">
+                <strong>Salão (500)</strong>
+                <span>Pote: 2.000</span>
+              </div>
+            </label>
+            <label class="mp-stake-radio">
+              <input type="radio" name="mp-stake-select" value="2500">
+              <div class="mp-stake-pill">
+                <strong>Altas (2.500)</strong>
+                <span>Pote: 10.000</span>
+              </div>
+            </label>
+            <label class="mp-stake-radio">
+              <input type="radio" name="mp-stake-select" value="custom">
+              <div class="mp-stake-pill">
+                <strong>Definir Valor</strong>
+                <span>Personalizado</span>
+              </div>
+            </label>
+          </div>
+          <div id="mp-custom-stake-wrap" style="display: none; margin-top: 10px;">
+            <input type="number" id="input-custom-stake" min="0" max="50000" step="50" placeholder="Digite o valor das fichas (ex: 1500)" style="width: 100%; background: rgba(0,0,0,0.6); border: 1.5px solid var(--gold); border-radius: 8px; padding: 10px 14px; color: var(--gold-bright); font-size: 1rem;">
+          </div>
+
           <div style="margin-top: 25px; display: flex; justify-content: flex-end;">
             <button class="btn-primary" id="btn-submit-create-room">
               <span>GERAR CÓDIGO DA SALA</span>
@@ -712,6 +851,10 @@
             <h2 style="font-family: var(--font-title); color: var(--gold-bright); font-size: 1.8rem; letter-spacing: 2px; margin-top: 2px;">
               SALA <span id="waiting-room-code-display" style="color: #fff; background: rgba(116,38,58,0.7); padding: 2px 10px; border-radius: 6px; border: 1px solid var(--gold);">MAFAMA-4821</span>
             </h2>
+            <div class="waiting-stake-pill" id="waiting-room-stake-badge">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><line x1="12" y1="3" x2="12" y2="7"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="3" y1="12" x2="7" y2="12"/><line x1="17" y1="12" x2="21" y2="12"/></svg>
+              <span id="waiting-room-stake-txt">Entrada: 500 fichas &bull; Pote: 2.000 fichas</span>
+            </div>
           </div>
           <button class="btn-secondary" id="btn-copy-room-code" style="padding: 8px 16px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -812,6 +955,66 @@
         <button class="btn-primary" id="btn-ability-confirm" style="margin: 0 auto; padding: 10px 30px; font-size: 1rem;">
           <span>CONFIRMAR E RETORNAR À MESA</span>
         </button>
+      </div>
+    <!-- ====================================================================
+         10. CARTEIRA DO JOGADOR & HISTÓRICO DE FICHAS (VIRTUAL ECONOMY)
+         ==================================================================== -->
+    <div class="modal-overlay" id="wallet-modal">
+      <div class="lore-modal-box wallet-modal-box" style="max-width: 680px; background: radial-gradient(circle at 50% 20%, #1c1524 0%, #0d0913 100%); border: 2px solid var(--gold); box-shadow: 0 16px 50px rgba(0,0,0,0.85), 0 0 30px rgba(216,173,102,0.25);">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid rgba(216,173,102,0.3); padding-bottom: 14px; margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="color: var(--gold-bright); display: flex; align-items: center;">
+              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><line x1="12" y1="3" x2="12" y2="7"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="3" y1="12" x2="7" y2="12"/><line x1="17" y1="12" x2="21" y2="12"/></svg>
+            </span>
+            <div>
+              <span style="font-size: 0.75rem; color: var(--gold); letter-spacing: 2px; text-transform: uppercase;">BANCO CLANDESTINO</span>
+              <h2 style="font-family: var(--font-title); font-size: 1.8rem; color: var(--gold-bright); letter-spacing: 1.5px; margin: 0;">CARTEIRA DE FICHAS</h2>
+            </div>
+          </div>
+          <button class="icon-btn" id="btn-close-wallet" style="width: 32px; height: 32px;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <!-- Big Balance Display -->
+        <div class="wallet-balance-card">
+          <div class="wallet-balance-header">
+            <span>SALDO DISPONÍVEL DO JOGADOR</span>
+            <span class="wallet-status-badge">Fichas Virtuais</span>
+          </div>
+          <div class="wallet-balance-num-row">
+            <span class="wallet-big-chip">
+              <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><line x1="12" y1="3" x2="12" y2="7"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="3" y1="12" x2="7" y2="12"/><line x1="17" y1="12" x2="21" y2="12"/></svg>
+            </span>
+            <span class="wallet-big-num" id="wallet-modal-balance">2.500</span>
+            <span class="wallet-big-unit">fichas</span>
+          </div>
+          <p class="wallet-balance-note">
+            As fichas são reservadas na confirmação da mesa e distribuídas integralmente à dupla ou jogador vencedor ao fim da partida. Sem valor monetário real.
+          </p>
+        </div>
+
+        <!-- Emergency Loan Box (available when balance < 100) -->
+        <div class="wallet-loan-box" id="wallet-loan-box">
+          <div class="loan-info">
+            <strong>Empréstimo da Vila do Azar</strong>
+            <p id="loan-box-status-txt">Se suas fichas acabarem (saldo inferior a 100 fichas), você pode solicitar um empréstimo de +500 fichas para continuar jogando.</p>
+          </div>
+          <button class="btn-secondary" id="btn-request-loan" style="padding: 10px 18px; font-size: 0.9rem; white-space: nowrap;">
+            <span>SOLICITAR +500 FICHAS</span>
+          </button>
+        </div>
+
+        <!-- Transactions History -->
+        <div class="wallet-tx-section">
+          <div class="wallet-tx-header">
+            <h4>HISTÓRICO DE TRANSAÇÕES</h4>
+            <span class="tx-subtitle">Auditoria de entradas, prêmios e estornos</span>
+          </div>
+          <div class="wallet-tx-list" id="wallet-tx-list">
+            <!-- Populated dynamically via JS -->
+          </div>
+        </div>
       </div>
     </div>
 
